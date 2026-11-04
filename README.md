@@ -11,16 +11,16 @@ K. Walus, T. J. Dysart, G. A. Jullien, and R. A. Budiman, "QCADesigner: a rapid 
 
 Installation
 ============
+Install the build requirements. On Ubuntu or Debian:
+
+```sh
+$ sudo apt install build-essential pkg-config libgtk2.0-dev
+```
+
 Switch to source folder of the project:
 
 ```sh
 $ cd QCADesignerE
-```
-
-Prepare the program for compiling by typing
-
-```sh
-$ ./autogen.sh
 ```
 
 Next, you have to run the configure script to customize the compilation process for your system. The configure script provides many options. The most commonly used one is --prefix=[directory], where directory is the directory where you would like to install QCADesignerE. Once installed, the QCADesignerE program will be at QCADesignerE/bin/QCADesignerE. For example:
@@ -44,8 +44,10 @@ $ make install
 Run QCADesignerE with
 
 ```sh
-$ bin\QCADesigner &
+$ /home/your_account/your_install_location/bin/QCADesignerE &
 ```
+
+The icons and other data files are looked up in the locations set by `configure`, so run `make install` before moving or deleting the source folder. To try the program without installing it, run `./src/QCADesigner` from `QCADesignerE`.
 
 Information
 ===========
