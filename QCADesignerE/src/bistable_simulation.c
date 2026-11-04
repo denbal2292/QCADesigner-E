@@ -380,7 +380,8 @@ simulation_data *run_bistable_simulation (int SIMULATION_TYPE, DESIGN *design, b
 
             // If any cells polarization has changed beyond this threshold
             // then the entire circuit is assumed to have not converged.
-            stable = (fabs (new_polarization - old_polarization) <= tolerance) ;
+            if (fabs (new_polarization - old_polarization) > tolerance)
+              stable = FALSE ;
             }
           }
         }
@@ -413,6 +414,8 @@ simulation_data *run_bistable_simulation (int SIMULATION_TYPE, DESIGN *design, b
       g_free(((bistable_model *)sorted_cells[k][l]->cell_model)->neighbours);
       g_free(((bistable_model *)sorted_cells[k][l]->cell_model)->neighbour_layer);
       g_free(((bistable_model *)sorted_cells[k][l]->cell_model)->Ek);
+      g_free(sorted_cells[k][l]->cell_model);
+      sorted_cells[k][l]->cell_model = NULL;
       }
     }
 
