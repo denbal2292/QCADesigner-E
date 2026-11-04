@@ -26,3 +26,7 @@ config.status
 
 # Simulation output
 QCADesignerE_Diss.trace
+
+# Packaging output
+*.AppImage
+*.AppDir/

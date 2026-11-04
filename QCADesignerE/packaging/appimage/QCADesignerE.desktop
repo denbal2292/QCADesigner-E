@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=QCADesignerE
+Comment=QCA-based circuit designer and simulator with energy estimation
+Exec=QCADesignerE %f
+Icon=QCADesignerE
+Categories=Science;Engineering;
+Terminal=false

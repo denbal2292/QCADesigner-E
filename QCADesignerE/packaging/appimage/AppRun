@@ -1,0 +1,17 @@
+#!/bin/sh
+# Starts QCADesigner-E from inside the AppImage, using the bundled libraries.
+
+HERE="$(dirname "$(readlink -f "$0")")"
+
+export LD_LIBRARY_PATH="$HERE/usr/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+
+# Keep the host's GTK 2 theme, image loader and input method plugins out. They were
+# built for the host's libraries, not the bundled ones.
+export GTK2_RC_FILES="$HERE/usr/share/qcadesignere/gtkrc"
+export GDK_PIXBUF_MODULE_FILE="$HERE/usr/share/qcadesignere/empty"
+export GTK_IM_MODULE_FILE="$HERE/usr/share/qcadesignere/empty"
+
+# Fall back on the bundled MIME database, after any the host has.
+export XDG_DATA_DIRS="${XDG_DATA_DIRS:-/usr/local/share:/usr/share}:$HERE/usr/share"
+
+exec "$HERE/usr/bin/QCADesignerE" "$@"

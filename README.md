@@ -49,6 +49,10 @@ $ /home/your_account/your_install_location/bin/QCADesignerE &
 
 The icons and other data files are looked up in the locations set by `configure`, so run `make install` before moving or deleting the source folder. To try the program without installing it, run `./src/QCADesigner` from `QCADesignerE`.
 
+To build an AppImage, run `QCADesignerE/packaging/appimage/build-appimage.sh` on Ubuntu 22.04. The script lists what it requires.
+
+GitHub Actions builds an AppImage for each push to master, under the workflow run's artifacts. Pushing a version tag such as `v2.3` also publishes it as a release.
+
 You only need `./autogen.sh` after changing `configure.in` or a `Makefile.am`. It requires `autoconf` and `automake`, and it regenerates `configure` and the `Makefile.in` files.
 
 Information

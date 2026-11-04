@@ -16,6 +16,8 @@ UNRELEASED
 - Shift + middle mouse button drag pans in any tool
 - generated files are no longer tracked, and configure can be run directly from a fresh clone
 - fixed autogen.sh, which is now only needed after changing the build files
+- data files are found relative to the program, so an installed copy can be moved
+- added an AppImage build, which GitHub Actions runs for each push and publishes for version tags
 
 
 VERSION: 2.2 (13/SEP/2018)
