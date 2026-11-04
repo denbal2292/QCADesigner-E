@@ -333,10 +333,10 @@ gboolean drawing_area_button_pressed (GtkWidget *widget, GdkEventButton *event, 
   if (3 == event->button)
     gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (main_window.default_action_button), TRUE) ;
   else
-  // Middle button zooms to a window, Shift + middle button pans
+  // Ctrl + middle button zooms to a window, middle button alone pans
   if (2 == event->button)
     {
-    bZoomWindow = !(event->state & GDK_SHIFT_MASK) ;
+    bZoomWindow = (0 != (event->state & GDK_CONTROL_MASK)) ;
     xOld = xRef = event->x ;
     yOld = yRef = event->y ;
     }
@@ -599,14 +599,14 @@ gboolean scroll_event(GtkWidget *widget, GdkEventScroll *event, gpointer user_da
   int iDir =
     GDK_SCROLL_UP == event->direction ? 1 :       // Mouse wheel clicked away from the user
     GDK_SCROLL_DOWN == event->direction ? -1 : 0, // Mouse wheel clicked towards the user
-    idx = event->state & GDK_CONTROL_MASK ? 0 : 1,
+    idx = event->state & GDK_SHIFT_MASK ? 0 : 1,
     x = -1, y = -1,
     dist[2] = {0, 0} ;
 
   DBG_CB_HERE (fprintf (stderr, "Entering scroll_event\n")) ;
 
-  // Shift + wheel zooms, keeping the point under the mouse pointer in place
-  if (event->state & GDK_SHIFT_MASK)
+  // Ctrl + wheel zooms, keeping the point under the mouse pointer in place
+  if (event->state & GDK_CONTROL_MASK)
     {
     if (0 != iDir)
       {

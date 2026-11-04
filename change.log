@@ -12,8 +12,8 @@ UNRELEASED
 - fixed stopped or diverged simulations leaving inactive inputs as normal cells
 - fixed memory overflow and trailing zeros in recorded traces, depending on the number of samples
 - Runge-Kutta now advances the coherence vector components together
-- Shift + mouse wheel zooms at the mouse pointer
-- Shift + middle mouse button drag pans in any tool
+- Ctrl + mouse wheel zooms at the mouse pointer, and Shift + mouse wheel now scrolls sideways
+- middle mouse button drag pans in any tool, and Ctrl + middle mouse button drag now draws the zoom box
 - generated files are no longer tracked, and configure can be run directly from a fresh clone
 - fixed autogen.sh, which is now only needed after changing the build files
 - fixed numbers saved with commas on systems that use them, which loaded as wrong values; such files now load correctly
