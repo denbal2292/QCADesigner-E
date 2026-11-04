@@ -27,6 +27,7 @@
 
 #ifdef GTK_GUI
 
+#include <locale.h>
 #include "support.h"
 #include "gtk_preamble.h"
 #include "qcadstock.h"
@@ -110,6 +111,9 @@ void gtk_preamble (int *pargc, char ***pargv, char *pszBaseName)
   textdomain (PACKAGE);
 #endif
   gtk_set_locale ();
+  // gtk_init and gtk_set_locale adopt the system locale, which can make every number the
+  // program formats use a comma. Files must always use periods, so keep them for numbers.
+  setlocale (LC_NUMERIC, "C") ;
 
   // Add pixmap directories
 #ifdef WIN32

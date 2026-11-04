@@ -31,6 +31,7 @@
 #include "support.h"
 #include "global_consts.h"
 #include "coherence_vector_energy_properties_dialog.h"
+#include "generic_utils.h"
 
 #define DBG_RO(s)
 
@@ -362,26 +363,26 @@ static void coherence_energy_OP_to_dialog (coherence_energy_OP *psco, coherence_
 
 static void dialog_to_coherence_energy_OP (coherence_energy_OP *psco, coherence_energy_properties_D *dialog)
   {
-  psco->T                      = atof (gtk_entry_get_text (GTK_ENTRY (dialog->T_entry))) ;
-  psco->relaxation             = atof (gtk_entry_get_text (GTK_ENTRY (dialog->relaxation_entry))) ;
-  psco->time_step              = atof (gtk_entry_get_text (GTK_ENTRY (dialog->time_step_entry))) ;
-  psco->duration               = atof (gtk_entry_get_text (GTK_ENTRY (dialog->duration_entry))) ;
-  psco->clock_period           = atof (gtk_entry_get_text (GTK_ENTRY (dialog->clock_period_entry))) ;
-  psco->input_period           = atof (gtk_entry_get_text (GTK_ENTRY (dialog->input_period_entry))) ;
-  psco->clock_high             = atof (gtk_entry_get_text (GTK_ENTRY (dialog->clock_high_entry))) ;
-  psco->clock_low              = atof (gtk_entry_get_text (GTK_ENTRY (dialog->clock_low_entry))) ;
-  psco->clock_shift            = atof (gtk_entry_get_text (GTK_ENTRY (dialog->clock_shift_entry))) ;
-  psco->t_slope_ramp           = atof (gtk_entry_get_text (GTK_ENTRY (dialog->clock_slope_entry))) ;
-  psco->radius_of_effect       = atof (gtk_entry_get_text (GTK_ENTRY (dialog->radius_of_effect_entry))) ;
-  psco->epsilonR               = atof (gtk_entry_get_text (GTK_ENTRY (dialog->epsilonR_entry))) ;
-  psco->layer_separation       = atof (gtk_entry_get_text (GTK_ENTRY (dialog->layer_separation_entry))) ;
+  psco->T                      = qcad_strtod (gtk_entry_get_text (GTK_ENTRY (dialog->T_entry))) ;
+  psco->relaxation             = qcad_strtod (gtk_entry_get_text (GTK_ENTRY (dialog->relaxation_entry))) ;
+  psco->time_step              = qcad_strtod (gtk_entry_get_text (GTK_ENTRY (dialog->time_step_entry))) ;
+  psco->duration               = qcad_strtod (gtk_entry_get_text (GTK_ENTRY (dialog->duration_entry))) ;
+  psco->clock_period           = qcad_strtod (gtk_entry_get_text (GTK_ENTRY (dialog->clock_period_entry))) ;
+  psco->input_period           = qcad_strtod (gtk_entry_get_text (GTK_ENTRY (dialog->input_period_entry))) ;
+  psco->clock_high             = qcad_strtod (gtk_entry_get_text (GTK_ENTRY (dialog->clock_high_entry))) ;
+  psco->clock_low              = qcad_strtod (gtk_entry_get_text (GTK_ENTRY (dialog->clock_low_entry))) ;
+  psco->clock_shift            = qcad_strtod (gtk_entry_get_text (GTK_ENTRY (dialog->clock_shift_entry))) ;
+  psco->t_slope_ramp           = qcad_strtod (gtk_entry_get_text (GTK_ENTRY (dialog->clock_slope_entry))) ;
+  psco->radius_of_effect       = qcad_strtod (gtk_entry_get_text (GTK_ENTRY (dialog->radius_of_effect_entry))) ;
+  psco->epsilonR               = qcad_strtod (gtk_entry_get_text (GTK_ENTRY (dialog->epsilonR_entry))) ;
+  psco->layer_separation       = qcad_strtod (gtk_entry_get_text (GTK_ENTRY (dialog->layer_separation_entry))) ;
   psco->algorithm          = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (dialog->euler_method_radio)) ? EULER_METHOD : RUNGE_KUTTA;
   psco->randomize_cells    = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (dialog->chkRandomizeCells)) ;
   psco->animate_simulation = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (dialog->chkAnimate)) ;
   psco->zero_mode_act 	   = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (dialog->chkzero_mode_act)) ;
   psco->display_cell_diss  = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (dialog->chkdisplay_cell_diss)) ;
-  psco->diss_trace_cood_x      = atof (gtk_entry_get_text (GTK_ENTRY (dialog->EntryX))) ;
-  psco->diss_trace_cood_y      = atof (gtk_entry_get_text (GTK_ENTRY (dialog->EntryY))) ;
+  psco->diss_trace_cood_x      = qcad_strtod (gtk_entry_get_text (GTK_ENTRY (dialog->EntryX))) ;
+  psco->diss_trace_cood_y      = qcad_strtod (gtk_entry_get_text (GTK_ENTRY (dialog->EntryY))) ;
   if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (dialog->COS_type_radio))) 
     psco->clock_type = COS;
   if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (dialog->RAMP_type_radio))) 

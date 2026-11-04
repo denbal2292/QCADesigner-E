@@ -42,6 +42,7 @@ gboolean LineSegmentCanBeSkipped (double dx0, double dy0, double dx1, double dy1
 #ifdef GTK_GUI
 void RunCmdLineAsync (char *pszCmdLine, char *pszTmpFName) ;
 #endif /* def GTK_GUI */
+double qcad_strtod (const char *psz) ;
 char *get_enum_string_from_value (GType enum_type, int value) ;
 #ifndef WIN32
 const char *get_package_data_dir () ;

@@ -45,6 +45,7 @@
 #include "../fileio_helpers.h"
 #include "objects_debug.h"
 #include "../exp_array.h"
+#include "../generic_utils.h"
 
 typedef struct
   {
@@ -671,38 +672,38 @@ static gboolean unserialize (QCADDesignObject *obj, FILE *fp)
     tokenize_line (pszLine, strlen (pszLine), &pszValue, '=') ;
 
     if (!strcmp (pszLine, "x"))
-      obj->x = g_ascii_strtod (pszValue, NULL) ;
+      obj->x = qcad_strtod (pszValue) ;
     else
     if (!strcmp (pszLine, "y"))
-      obj->y = g_ascii_strtod (pszValue, NULL) ;
+      obj->y = qcad_strtod (pszValue) ;
     else
 // compatibility values
     if (!strcmp (pszLine, "xTop"))
-      obj->bounding_box.xWorld = g_ascii_strtod (pszValue, NULL) ;
+      obj->bounding_box.xWorld = qcad_strtod (pszValue) ;
     else
     if (!strcmp (pszLine, "yTop"))
-      obj->bounding_box.yWorld = g_ascii_strtod (pszValue, NULL) ;
+      obj->bounding_box.yWorld = qcad_strtod (pszValue) ;
     else
     // The following 2 calculations impose the following restriction:
     // For any given object, xTop and yTop must appear before xBot and yBot
     if (!strcmp (pszLine, "xBot"))
-      obj->bounding_box.cxWorld = g_ascii_strtod (pszValue, NULL) - obj->bounding_box.xWorld ;
+      obj->bounding_box.cxWorld = qcad_strtod (pszValue) - obj->bounding_box.xWorld ;
     else
     if (!strcmp (pszLine, "yBot"))
-      obj->bounding_box.cyWorld = g_ascii_strtod (pszValue, NULL) - obj->bounding_box.yWorld ;
+      obj->bounding_box.cyWorld = qcad_strtod (pszValue) - obj->bounding_box.yWorld ;
 // new, rectangle notation
     else
     if (!strcmp (pszLine, "bounding_box.xWorld"))
-      obj->bounding_box.xWorld = g_ascii_strtod (pszValue, NULL) ;
+      obj->bounding_box.xWorld = qcad_strtod (pszValue) ;
     else
     if (!strcmp (pszLine, "bounding_box.yWorld"))
-      obj->bounding_box.yWorld = g_ascii_strtod (pszValue, NULL) ;
+      obj->bounding_box.yWorld = qcad_strtod (pszValue) ;
     else
     if (!strcmp (pszLine, "bounding_box.cxWorld"))
-      obj->bounding_box.cxWorld = g_ascii_strtod (pszValue, NULL) ;
+      obj->bounding_box.cxWorld = qcad_strtod (pszValue) ;
     else
     if (!strcmp (pszLine, "bounding_box.cyWorld"))
-      obj->bounding_box.cyWorld = g_ascii_strtod (pszValue, NULL) ;
+      obj->bounding_box.cyWorld = qcad_strtod (pszValue) ;
 // end differences
     else
     if (!strcmp (pszLine, "bSelected"))

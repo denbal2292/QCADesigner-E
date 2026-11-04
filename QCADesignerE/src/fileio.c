@@ -39,6 +39,7 @@
 #include "global_consts.h"
 #include "custom_widgets.h"
 #include "objects/QCADDOContainer.h"
+#include "generic_utils.h"
 
 #define FLOATS_PER_LINE 5
 
@@ -133,7 +134,7 @@ gboolean check_project_file_magic_fp (FILE *pfile, double *pversion)
   tokenize_line (pszLine, strlen (pszLine), &pszValue, '=') ;
 
   if (!strcmp (pszLine, "qcadesigner_version"))
-    (*pversion) = g_ascii_strtod (pszValue, NULL) ;
+    (*pversion) = qcad_strtod (pszValue) ;
 
   g_free (pszLine) ;
 
@@ -278,7 +279,7 @@ static void read_options (FILE *project_file, double *pgrid_spacing)
 		if ((identifier = get_identifier(buffer)) != NULL)
       {
 			if(!strncmp(identifier, "grid_spacing", sizeof("grid_spacing")))
-				(*pgrid_spacing) = g_ascii_strtod (strchr (buffer,'=') + sizeof (char), NULL);
+				(*pgrid_spacing) = qcad_strtod (strchr (buffer,'=') + sizeof (char));
 
 			g_free (identifier);
 			identifier = NULL;
@@ -393,32 +394,32 @@ static QCADDesignObject *legacy_read_cell_from_stream (FILE *stream)
 
     // -- Find and set the appropriate property of the cell from the buffer -- //
     if (!strncmp (pszName, "x", sizeof ("x")))
-      obj->x = g_ascii_strtod (pszValue, NULL) ;
+      obj->x = qcad_strtod (pszValue) ;
     else
     if (!strncmp (pszName, "y", sizeof ("y")))
-      obj->y = g_ascii_strtod (pszValue, NULL) ;
+      obj->y = qcad_strtod (pszValue) ;
     else
     if (!strncmp (pszName, "top_x", sizeof ("top_x")))
-      obj->bounding_box.xWorld = g_ascii_strtod (pszValue, NULL) ;
+      obj->bounding_box.xWorld = qcad_strtod (pszValue) ;
     else
     if (!strncmp (pszName, "top_y", sizeof ("top_y")))
-      obj->bounding_box.yWorld = g_ascii_strtod (pszValue, NULL) ;
+      obj->bounding_box.yWorld = qcad_strtod (pszValue) ;
     else
     if (!strncmp (pszName, "bot_x", sizeof ("bot_x")))
-      obj->bounding_box.cxWorld = g_ascii_strtod (pszValue, NULL) - obj->bounding_box.xWorld ;
+      obj->bounding_box.cxWorld = qcad_strtod (pszValue) - obj->bounding_box.xWorld ;
     else
     if (!strncmp (pszName, "bot_y", sizeof("bot_y")))
-      obj->bounding_box.cyWorld = g_ascii_strtod (pszValue, NULL) - obj->bounding_box.yWorld ;
+      obj->bounding_box.cyWorld = qcad_strtod (pszValue) - obj->bounding_box.yWorld ;
     else
     if (!strncmp (pszName, "cell_width", sizeof ("cell_width")))
-      cell->cell_options.cxCell = g_ascii_strtod (pszValue, NULL) ;
+      cell->cell_options.cxCell = qcad_strtod (pszValue) ;
     else
     if (!strncmp (pszName, "cell_height", sizeof ("cell_height")))
-      cell->cell_options.cyCell = g_ascii_strtod (pszValue, NULL) ;
+      cell->cell_options.cyCell = qcad_strtod (pszValue) ;
     else
     if (!strncmp (pszName, "clock", sizeof ("clock")))
       clock =
-      cell->cell_options.clock = g_ascii_strtod (pszValue, NULL) ;
+      cell->cell_options.clock = qcad_strtod (pszValue) ;
     else
     if (!strncmp (pszName, "is_input", sizeof ("is_input")))
       bInput = atoi (pszValue);
@@ -463,22 +464,22 @@ static QCADDesignObject *legacy_read_cell_from_stream (FILE *stream)
 
 	      // -- Find and set the appropriate property of the cell from the buffer -- //
 	      if (!strncmp (pszName, "x", sizeof ("x")))
-		      cell->cell_dots[current_dot].x = g_ascii_strtod (pszValue, NULL) ;
+		      cell->cell_dots[current_dot].x = qcad_strtod (pszValue) ;
 	      else
         if (!strncmp (pszName, "y", sizeof ("y")))
-		      cell->cell_dots[current_dot].y = g_ascii_strtod (pszValue, NULL) ;
+		      cell->cell_dots[current_dot].y = qcad_strtod (pszValue) ;
 	      else
         if (!strncmp (pszName, "diameter", sizeof ("diameter")))
-		      cell->cell_dots[current_dot].diameter = g_ascii_strtod (pszValue, NULL) ;
+		      cell->cell_dots[current_dot].diameter = qcad_strtod (pszValue) ;
 	      else
         if(!strncmp (pszName, "charge", sizeof ("charge")))
-		      cell->cell_dots[current_dot].charge = g_ascii_strtod (pszValue, NULL) ;
+		      cell->cell_dots[current_dot].charge = qcad_strtod (pszValue) ;
 	      else
         if (!strncmp (pszName, "spin", sizeof ("spin")))
-		      cell->cell_dots[current_dot].spin = g_ascii_strtod (pszValue, NULL) ;
+		      cell->cell_dots[current_dot].spin = qcad_strtod (pszValue) ;
 	      else
         if(!strncmp (pszName, "potential", sizeof ("potenital")))
-		      cell->cell_dots[current_dot].potential = g_ascii_strtod (pszValue, NULL) ;
+		      cell->cell_dots[current_dot].potential = qcad_strtod (pszValue) ;
 
 	      if (feof (stream))
           {
@@ -808,40 +809,40 @@ static coherence_OP *open_coherence_options_file_fp (FILE *pfile)
     tokenize_line (pszLine, strlen (pszLine), &pszValue, '=') ;
 
     if (!strncmp (pszLine, "T", sizeof ("T") - 1))
-      coherence_options->T = g_ascii_strtod (pszValue, NULL) ;
+      coherence_options->T = qcad_strtod (pszValue) ;
     else
     if (!strncmp (pszLine, "relaxation", sizeof ("relaxation") - 1))
-      coherence_options->relaxation = g_ascii_strtod (pszValue, NULL) ;
+      coherence_options->relaxation = qcad_strtod (pszValue) ;
     else
     if (!strncmp (pszLine, "time_step", sizeof ("time_step") - 1))
-      coherence_options->time_step = g_ascii_strtod (pszValue, NULL) ;
+      coherence_options->time_step = qcad_strtod (pszValue) ;
     else
     if (!strncmp (pszLine, "relaxation", sizeof ("relaxation") - 1))
-      coherence_options->relaxation = g_ascii_strtod (pszValue, NULL) ;
+      coherence_options->relaxation = qcad_strtod (pszValue) ;
     else
     if (!strncmp (pszLine, "duration", sizeof ("duration") - 1))
-      coherence_options->duration = g_ascii_strtod (pszValue, NULL) ;
+      coherence_options->duration = qcad_strtod (pszValue) ;
     else
     if (!strncmp (pszLine, "clock_high", sizeof ("clock_high") - 1))
-      coherence_options->clock_high = g_ascii_strtod (pszValue, NULL) ;
+      coherence_options->clock_high = qcad_strtod (pszValue) ;
     else
     if (!strncmp (pszLine, "clock_low", sizeof ("clock_low") - 1))
-      coherence_options->clock_low = g_ascii_strtod (pszValue, NULL) ;
+      coherence_options->clock_low = qcad_strtod (pszValue) ;
     else
     if (!strncmp (pszLine, "clock_shift", sizeof ("clock_shift") - 1))
-      coherence_options->clock_shift = g_ascii_strtod (pszValue, NULL) ;
+      coherence_options->clock_shift = qcad_strtod (pszValue) ;
     else
     if (!strncmp (pszLine, "clock_amplitude_factor", sizeof ("clock_amplitude_factor") - 1))
-      coherence_options->clock_amplitude_factor = g_ascii_strtod (pszValue, NULL) ;
+      coherence_options->clock_amplitude_factor = qcad_strtod (pszValue) ;
     else
     if (!strncmp (pszLine, "radius_of_effect", sizeof ("radius_of_effect") - 1))
-      coherence_options->radius_of_effect = g_ascii_strtod (pszValue, NULL) ;
+      coherence_options->radius_of_effect = qcad_strtod (pszValue) ;
     else
     if (!strncmp (pszLine, "epsilonR", sizeof ("epsilonR") - 1))
-      coherence_options->epsilonR = g_ascii_strtod (pszValue, NULL) ;
+      coherence_options->epsilonR = qcad_strtod (pszValue) ;
     else
     if (!strncmp (pszLine, "layer_separation", sizeof ("layer_separation") - 1))
-      coherence_options->layer_separation = g_ascii_strtod (pszValue, NULL) ;
+      coherence_options->layer_separation = qcad_strtod (pszValue) ;
     else
     if (!strncmp (pszLine, "algorithm", sizeof ("algorithm") - 1))
       coherence_options->algorithm = atoi (pszValue) ;
@@ -882,37 +883,37 @@ static coherence_energy_OP *open_coherence_energy_options_file_fp (FILE *pfile)
     tokenize_line (pszLine, strlen (pszLine), &pszValue, '=') ;
 
     if (!strncmp (pszLine, "T", sizeof ("T") - 1))
-      coherence_energy_options->T = g_ascii_strtod (pszValue, NULL) ;
+      coherence_energy_options->T = qcad_strtod (pszValue) ;
     else
     if (!strncmp (pszLine, "relaxation", sizeof ("relaxation") - 1))
-      coherence_energy_options->relaxation = g_ascii_strtod (pszValue, NULL) ;
+      coherence_energy_options->relaxation = qcad_strtod (pszValue) ;
     else
     if (!strncmp (pszLine, "time_step", sizeof ("time_step") - 1))
-      coherence_energy_options->time_step = g_ascii_strtod (pszValue, NULL) ;
+      coherence_energy_options->time_step = qcad_strtod (pszValue) ;
     else
     if (!strncmp (pszLine, "relaxation", sizeof ("relaxation") - 1))
-      coherence_energy_options->relaxation = g_ascii_strtod (pszValue, NULL) ;
+      coherence_energy_options->relaxation = qcad_strtod (pszValue) ;
     else
     if (!strncmp (pszLine, "duration", sizeof ("duration") - 1))
-      coherence_energy_options->duration = g_ascii_strtod (pszValue, NULL) ;
+      coherence_energy_options->duration = qcad_strtod (pszValue) ;
     else
     if (!strncmp (pszLine, "clock_high", sizeof ("clock_high") - 1))
-      coherence_energy_options->clock_high = g_ascii_strtod (pszValue, NULL) ;
+      coherence_energy_options->clock_high = qcad_strtod (pszValue) ;
     else
     if (!strncmp (pszLine, "clock_low", sizeof ("clock_low") - 1))
-      coherence_energy_options->clock_low = g_ascii_strtod (pszValue, NULL) ;
+      coherence_energy_options->clock_low = qcad_strtod (pszValue) ;
     else
     if (!strncmp (pszLine, "clock_shift", sizeof ("clock_shift") - 1))
-      coherence_energy_options->clock_shift = g_ascii_strtod (pszValue, NULL) ;
+      coherence_energy_options->clock_shift = qcad_strtod (pszValue) ;
     else
     if (!strncmp (pszLine, "radius_of_effect", sizeof ("radius_of_effect") - 1))
-      coherence_energy_options->radius_of_effect = g_ascii_strtod (pszValue, NULL) ;
+      coherence_energy_options->radius_of_effect = qcad_strtod (pszValue) ;
     else
     if (!strncmp (pszLine, "epsilonR", sizeof ("epsilonR") - 1))
-      coherence_energy_options->epsilonR = g_ascii_strtod (pszValue, NULL) ;
+      coherence_energy_options->epsilonR = qcad_strtod (pszValue) ;
     else
     if (!strncmp (pszLine, "layer_separation", sizeof ("layer_separation") - 1))
-      coherence_energy_options->layer_separation = g_ascii_strtod (pszValue, NULL) ;
+      coherence_energy_options->layer_separation = qcad_strtod (pszValue) ;
     else
     if (!strncmp (pszLine, "algorithm", sizeof ("algorithm") - 1))
       coherence_energy_options->algorithm = atoi (pszValue) ;
@@ -974,31 +975,31 @@ static bistable_OP *open_bistable_options_file_fp (FILE *pfile)
       bistable_options->animate_simulation = !strncmp (pszValue, "TRUE", sizeof ("TRUE") - 1) ? TRUE : FALSE ;
     else
     if (!strncmp (pszLine, "convergence_tolerance", sizeof ("convergence_tolerance") - 1))
-      bistable_options->convergence_tolerance = g_ascii_strtod (pszValue, NULL) ;
+      bistable_options->convergence_tolerance = qcad_strtod (pszValue) ;
     else
     if (!strncmp (pszLine, "radius_of_effect", sizeof ("radius_of_effect") - 1))
-      bistable_options->radius_of_effect = g_ascii_strtod (pszValue, NULL) ;
+      bistable_options->radius_of_effect = qcad_strtod (pszValue) ;
     else
     if (!strncmp (pszLine, "epsilonR", sizeof ("epsilonR") - 1))
-      bistable_options->epsilonR = g_ascii_strtod (pszValue, NULL) ;
+      bistable_options->epsilonR = qcad_strtod (pszValue) ;
     else
     if (!strncmp (pszLine, "clock_high", sizeof ("clock_high") - 1))
-      bistable_options->clock_high = g_ascii_strtod (pszValue, NULL) ;
+      bistable_options->clock_high = qcad_strtod (pszValue) ;
     else
     if (!strncmp (pszLine, "clock_low", sizeof ("clock_low") - 1))
-      bistable_options->clock_low = g_ascii_strtod (pszValue, NULL) ;
+      bistable_options->clock_low = qcad_strtod (pszValue) ;
     else
     if (!strncmp (pszLine, "clock_shift", sizeof ("clock_shift") - 1))
-      bistable_options->clock_shift = g_ascii_strtod (pszValue, NULL) ;
+      bistable_options->clock_shift = qcad_strtod (pszValue) ;
     else
     if (!strncmp (pszLine, "clock_amplitude_factor", sizeof ("clock_amplitude_factor") - 1))
-      bistable_options->clock_amplitude_factor = g_ascii_strtod (pszValue, NULL) ;
+      bistable_options->clock_amplitude_factor = qcad_strtod (pszValue) ;
     else
     if (!strncmp (pszLine, "max_iterations_per_sample", sizeof ("max_iterations_per_sample") - 1))
       bistable_options->max_iterations_per_sample = atoi (pszValue) ;
     else
     if (!strncmp (pszLine, "layer_separation", sizeof ("layer_separation") - 1))
-      bistable_options->layer_separation = g_ascii_strtod (pszValue, NULL) ;
+      bistable_options->layer_separation = qcad_strtod (pszValue) ;
     else
     if (!strncmp (pszLine, "randomize_cells", sizeof ("randomize_cells") - 1))
       bistable_options->randomize_cells = !strncmp (pszValue, "TRUE", sizeof ("TRUE") - 1) ? TRUE : FALSE ;
@@ -1075,7 +1076,7 @@ static void unserialize_trace_data (FILE *pfile, struct TRACEDATA *trace, int ic
     pszItr = pszLine ;
     while (NULL != (pszValue = next_space_separated_value (&pszItr)) && idx < icSamples)
       {
-      trace->data[idx++] = g_ascii_strtod (pszValue, NULL) ;
+      trace->data[idx++] = qcad_strtod (pszValue) ;
       if (0 == idx % 1000)
         set_progress_bar_fraction (get_file_percent (pfile)) ;
       }

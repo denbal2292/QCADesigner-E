@@ -28,6 +28,7 @@
 
 #include <math.h>
 #include <stdlib.h>
+#include <string.h>
 #ifndef WIN32
   #include <unistd.h>
 #endif /* ndef WIN32 */
@@ -123,6 +124,26 @@ gboolean LineSegmentCanBeSkipped (double dx0, double dy0, double dx1, double dy1
   if (dy0 == dy1 && dy1 == dy2) return TRUE ;
 
   return (fabs ((dy1 - dy0) / (dx1 - dx0) - (dy2 - dy1) / (dx2 - dx1)) < dMaxSlopeDiff) ;
+  }
+
+// Converts text to a number with either a period or a comma as the decimal separator,
+// whatever the locale. Design files saved on systems using commas contain them, and so
+// can numbers typed into dialogs.
+double qcad_strtod (const char *psz)
+  {
+  char *pszComma = NULL, *pszCopy = NULL ;
+  double dValue = 0.0 ;
+
+  if (NULL == psz) return 0.0 ;
+  if (NULL == strchr (psz, ',')) return g_ascii_strtod (psz, NULL) ;
+
+  pszCopy = g_strdup (psz) ;
+  if (NULL != (pszComma = strchr (pszCopy, ',')))
+    (*pszComma) = '.' ;
+  dValue = g_ascii_strtod (pszCopy, NULL) ;
+  g_free (pszCopy) ;
+
+  return dValue ;
   }
 
 #ifndef WIN32

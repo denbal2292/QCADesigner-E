@@ -62,10 +62,6 @@ int APIENTRY WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, char *pszCmd
 int main (int argc, char *argv[])
 #endif /* def QCAD_NO_CONSOLE */
   {
-  setlocale(LC_ALL,"C");
-struct lconv * lc;
-  lc=localeconv();
-  //printf ("Local Currency Symbol: %s\n",lc->decimal_point);
   GtkWindow *wndAbout = NULL ;
 #ifdef WIN32
 #ifdef QCAD_NO_CONSOLE

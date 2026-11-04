@@ -1133,13 +1133,13 @@ static gboolean unserialize (QCADDesignObject *obj, FILE *fp)
         }
       else
       if (!strcmp (pszLine, "cell_options.cxCell"))
-        cell->cell_options.cxCell = g_ascii_strtod (pszValue, NULL) ;
+        cell->cell_options.cxCell = qcad_strtod (pszValue) ;
       else
       if (!strcmp (pszLine, "cell_options.cyCell"))
-        cell->cell_options.cyCell = g_ascii_strtod (pszValue, NULL) ;
+        cell->cell_options.cyCell = qcad_strtod (pszValue) ;
       else
       if (!strcmp (pszLine, "cell_options.clock"))
-        cell->cell_options.clock = g_ascii_strtod (pszValue, NULL) ;
+        cell->cell_options.clock = qcad_strtod (pszValue) ;
       else
       if (!strcmp (pszLine, "cell_options.ignore_energy"))
         cell->cell_options.ignore_energy = !strcmp (pszValue, "TRUE") ? TRUE:FALSE;
@@ -1151,7 +1151,7 @@ static gboolean unserialize (QCADDesignObject *obj, FILE *fp)
             get_enum_value_from_string (QCAD_TYPE_CELL_MODE, pszValue) ;
       else
       if (!strcmp (pszLine, "cell_options.dot_diameter"))
-        cell->cell_options.dot_diameter = g_ascii_strtod (pszValue, NULL) ;
+        cell->cell_options.dot_diameter = qcad_strtod (pszValue) ;
       if (!strcmp (pszLine, "cell_function"))
         cell->cell_function = get_enum_value_from_string (QCAD_TYPE_CELL_FUNCTION, pszValue) ;
       else
@@ -1842,22 +1842,22 @@ static gboolean qcad_cell_dot_unserialize (FILE *fp, QCADCellDot *pdots, int idx
     tokenize_line (pszLine, strlen (pszLine), &pszValue, '=') ;
 
     if ((bHaveDot = !strcmp (pszLine, "x")))
-      dot.x = g_ascii_strtod (pszValue, NULL) ;
+      dot.x = qcad_strtod (pszValue) ;
     else
     if ((bHaveDot = !strcmp (pszLine, "y")))
-      dot.y = g_ascii_strtod (pszValue, NULL) ;
+      dot.y = qcad_strtod (pszValue) ;
     else
     if ((bHaveDot = !strcmp (pszLine, "diameter")))
-      dot.diameter = g_ascii_strtod (pszValue, NULL) ;
+      dot.diameter = qcad_strtod (pszValue) ;
     else
     if ((bHaveDot = !strcmp (pszLine, "charge")))
-      dot.charge = g_ascii_strtod (pszValue, NULL) ;
+      dot.charge = qcad_strtod (pszValue) ;
     else
     if ((bHaveDot = !strcmp (pszLine, "spin")))
-      dot.spin = g_ascii_strtod (pszValue, NULL) ;
+      dot.spin = qcad_strtod (pszValue) ;
     else
     if ((bHaveDot = !strcmp (pszLine, "potential")))
-      dot.potential = g_ascii_strtod (pszValue, NULL) ;
+      dot.potential = qcad_strtod (pszValue) ;
 
     g_free (pszLine) ;
     g_free (ReadLine (fp, '\0', FALSE)) ;

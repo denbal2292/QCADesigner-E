@@ -42,6 +42,7 @@
 #include "exp_array.h"
 #include "global_consts.h"
 #include "custom_widgets.h"
+#include "generic_utils.h"
 
 #ifdef GTK_GUI
 
@@ -288,7 +289,7 @@ static void signal_isb_spn_text_changed (GtkWidget *widget, gpointer data)
   GtkAdjustment *adj = gtk_spin_button_get_adjustment (GTK_SPIN_BUTTON (widget)) ;
   ISBDirection direction = (ISBDirection)data ;
   char *pszText = gtk_editable_get_chars (GTK_EDITABLE (widget), 0, -1) ;
-  double dVal = (NULL == pszText ? 0.0 : atof (pszText)) ;
+  double dVal = (NULL == pszText ? 0.0 : qcad_strtod (pszText)) ;
 
   g_free (pszText) ;
 

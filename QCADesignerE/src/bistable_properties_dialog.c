@@ -30,6 +30,7 @@
 
 #include "support.h"
 #include "bistable_properties_dialog.h"
+#include "generic_utils.h"
 
 typedef struct
   {
@@ -116,14 +117,14 @@ void get_bistable_properties_from_user (GtkWindow *parent, bistable_OP *pbo)
     {
     pbo->max_iterations_per_sample = atoi (gtk_entry_get_text (GTK_ENTRY (bistable_properties.max_iterations_per_sample_entry))) ;
     pbo->number_of_samples =         atoi (gtk_entry_get_text (GTK_ENTRY (bistable_properties.number_of_samples_entry))) ;
-    pbo->convergence_tolerance =     atof (gtk_entry_get_text (GTK_ENTRY (bistable_properties.convergence_tolerance_entry))) ;
-    pbo->radius_of_effect =          atof (gtk_entry_get_text (GTK_ENTRY (bistable_properties.radius_of_effect_entry))) ;
-    pbo->epsilonR =                  atof (gtk_entry_get_text (GTK_ENTRY (bistable_properties.epsilonR_entry))) ;
-    pbo->clock_high =                atof (gtk_entry_get_text (GTK_ENTRY (bistable_properties.clock_high_entry))) ;
-    pbo->clock_low =                 atof (gtk_entry_get_text (GTK_ENTRY (bistable_properties.clock_low_entry))) ;
-    pbo->clock_shift =               atof (gtk_entry_get_text (GTK_ENTRY (bistable_properties.clock_shift_entry))) ;
-    pbo->clock_amplitude_factor =    atof (gtk_entry_get_text (GTK_ENTRY (bistable_properties.clock_amplitude_factor_entry))) ;
-    pbo->layer_separation =          atof (gtk_entry_get_text (GTK_ENTRY (bistable_properties.layer_separation_entry))) ;
+    pbo->convergence_tolerance =     qcad_strtod (gtk_entry_get_text (GTK_ENTRY (bistable_properties.convergence_tolerance_entry))) ;
+    pbo->radius_of_effect =          qcad_strtod (gtk_entry_get_text (GTK_ENTRY (bistable_properties.radius_of_effect_entry))) ;
+    pbo->epsilonR =                  qcad_strtod (gtk_entry_get_text (GTK_ENTRY (bistable_properties.epsilonR_entry))) ;
+    pbo->clock_high =                qcad_strtod (gtk_entry_get_text (GTK_ENTRY (bistable_properties.clock_high_entry))) ;
+    pbo->clock_low =                 qcad_strtod (gtk_entry_get_text (GTK_ENTRY (bistable_properties.clock_low_entry))) ;
+    pbo->clock_shift =               qcad_strtod (gtk_entry_get_text (GTK_ENTRY (bistable_properties.clock_shift_entry))) ;
+    pbo->clock_amplitude_factor =    qcad_strtod (gtk_entry_get_text (GTK_ENTRY (bistable_properties.clock_amplitude_factor_entry))) ;
+    pbo->layer_separation =          qcad_strtod (gtk_entry_get_text (GTK_ENTRY (bistable_properties.layer_separation_entry))) ;
     pbo->animate_simulation =        gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (bistable_properties.chkAnimate)) ;
     pbo->randomize_cells =           gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (bistable_properties.chkRandomizeCells)) ;
     }

@@ -41,6 +41,7 @@
 #include "../fileio_helpers.h"
 #include "objects_debug.h"
 #include "QCADCell.h"
+#include "../generic_utils.h"
 
 #ifdef GTK_GUI
 typedef struct
@@ -391,7 +392,7 @@ static gboolean unserialize (QCADDesignObject *obj, FILE *fp)
         }
       else
       if (!strcmp (pszLine, "grid_spacing"))
-        subs->grid_spacing = g_ascii_strtod (pszValue, NULL) ;
+        subs->grid_spacing = qcad_strtod (pszValue) ;
       }
 
     g_free (pszLine) ;

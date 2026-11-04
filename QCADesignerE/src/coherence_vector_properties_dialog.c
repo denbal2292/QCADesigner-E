@@ -31,6 +31,7 @@
 #include "support.h"
 #include "global_consts.h"
 #include "coherence_vector_properties_dialog.h"
+#include "generic_utils.h"
 
 #define DBG_RO(s)
 
@@ -261,17 +262,17 @@ static void coherence_OP_to_dialog (coherence_OP *psco, coherence_properties_D *
 
 static void dialog_to_coherence_OP (coherence_OP *psco, coherence_properties_D *dialog)
   {
-  psco->T                      = atof (gtk_entry_get_text (GTK_ENTRY (dialog->T_entry))) ;
-  psco->relaxation             = atof (gtk_entry_get_text (GTK_ENTRY (dialog->relaxation_entry))) ;
-  psco->time_step              = atof (gtk_entry_get_text (GTK_ENTRY (dialog->time_step_entry))) ;
-  psco->duration               = atof (gtk_entry_get_text (GTK_ENTRY (dialog->duration_entry))) ;
-  psco->clock_high             = atof (gtk_entry_get_text (GTK_ENTRY (dialog->clock_high_entry))) ;
-  psco->clock_low              = atof (gtk_entry_get_text (GTK_ENTRY (dialog->clock_low_entry))) ;
-  psco->clock_shift            = atof (gtk_entry_get_text (GTK_ENTRY (dialog->clock_shift_entry))) ;
-  psco->clock_amplitude_factor = atof (gtk_entry_get_text (GTK_ENTRY (dialog->clock_amplitude_factor_entry))) ;
-  psco->radius_of_effect       = atof (gtk_entry_get_text (GTK_ENTRY (dialog->radius_of_effect_entry))) ;
-  psco->epsilonR               = atof (gtk_entry_get_text (GTK_ENTRY (dialog->epsilonR_entry))) ;
-  psco->layer_separation       = atof (gtk_entry_get_text (GTK_ENTRY (dialog->layer_separation_entry))) ;
+  psco->T                      = qcad_strtod (gtk_entry_get_text (GTK_ENTRY (dialog->T_entry))) ;
+  psco->relaxation             = qcad_strtod (gtk_entry_get_text (GTK_ENTRY (dialog->relaxation_entry))) ;
+  psco->time_step              = qcad_strtod (gtk_entry_get_text (GTK_ENTRY (dialog->time_step_entry))) ;
+  psco->duration               = qcad_strtod (gtk_entry_get_text (GTK_ENTRY (dialog->duration_entry))) ;
+  psco->clock_high             = qcad_strtod (gtk_entry_get_text (GTK_ENTRY (dialog->clock_high_entry))) ;
+  psco->clock_low              = qcad_strtod (gtk_entry_get_text (GTK_ENTRY (dialog->clock_low_entry))) ;
+  psco->clock_shift            = qcad_strtod (gtk_entry_get_text (GTK_ENTRY (dialog->clock_shift_entry))) ;
+  psco->clock_amplitude_factor = qcad_strtod (gtk_entry_get_text (GTK_ENTRY (dialog->clock_amplitude_factor_entry))) ;
+  psco->radius_of_effect       = qcad_strtod (gtk_entry_get_text (GTK_ENTRY (dialog->radius_of_effect_entry))) ;
+  psco->epsilonR               = qcad_strtod (gtk_entry_get_text (GTK_ENTRY (dialog->epsilonR_entry))) ;
+  psco->layer_separation       = qcad_strtod (gtk_entry_get_text (GTK_ENTRY (dialog->layer_separation_entry))) ;
   psco->algorithm          = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (dialog->euler_method_radio)) ? EULER_METHOD : RUNGE_KUTTA;
   psco->randomize_cells    = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (dialog->chkRandomizeCells)) ;
   psco->animate_simulation = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (dialog->chkAnimate)) ;
