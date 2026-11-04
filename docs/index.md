@@ -17,12 +17,6 @@ Switch to source folder of the project:
 $ cd QCADesignerE
 ```
 
-Prepare the program for compiling by typing
-
-```sh
-$ ./autogen.sh
-```
-
 Next, you have to run the configure script to customize the compilation process for your system. The configure script provides many options. The most commonly used one is --prefix=[directory], where directory is the directory where you would like to install QCADesignerE. Once installed, the QCADesignerE program will be at QCADesignerE/bin/QCADesignerE. For example:
 
 ```sh

@@ -49,6 +49,8 @@ $ /home/your_account/your_install_location/bin/QCADesignerE &
 
 The icons and other data files are looked up in the locations set by `configure`, so run `make install` before moving or deleting the source folder. To try the program without installing it, run `./src/QCADesigner` from `QCADesignerE`.
 
+You only need `./autogen.sh` after changing `configure.in` or a `Makefile.am`. It requires `autoconf` and `automake`, and it regenerates `configure` and the `Makefile.in` files.
+
 Information
 ===========
 - You can find a list of pre-implemented cells in the folder "circuits".
