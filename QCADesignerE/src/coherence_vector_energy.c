@@ -55,9 +55,9 @@
 // Calculates the temperature ratio
 #define temp_ratio(P,G,T) (hypot((G),(P)*0.5)/((T) * kB))
 
-#define PI 3.14159
-#define TWO_PI 6.283185
-#define FOUR_PI 12.56637061
+#define TWO_PI (2.0 * PI)
+// Stops the initial steady state search hanging on a design that does not settle
+#define MAX_INITIAL_ITERATIONS 100000
 
 // distance between two cells = grid_size
 #define CELL_DIST 20
@@ -133,13 +133,12 @@ static void run_coherence_iteration (unsigned long int sample_number, unsigned l
 static inline double lambda_ss_x (double t, double PEk, double Gamma, const coherence_energy_OP *options);
 static inline double lambda_ss_y (double t, double PEk, double Gamma, const coherence_energy_OP *options);
 static inline double lambda_ss_z (double t, double PEk, double Gamma, const coherence_energy_OP *options);
-static inline double lambda_x_next (double t, double PEk, double Gamma, double lambda_x, double lambda_y, double lambda_z, const coherence_energy_OP *options);
-static inline double lambda_y_next (double t, double PEk, double Gamma, double lambda_x, double lambda_y, double lambda_z, const coherence_energy_OP *options);
-static inline double lambda_z_next (double t, double PEk, double Gamma, double lambda_x, double lambda_y, double lambda_z, const coherence_energy_OP *options);
 static inline double slope_x (double t, double PEk, double Gamma, double lambda_x, double lambda_y, double lambda_z, const coherence_energy_OP *options);
 static inline double slope_y (double t, double PEk, double Gamma, double lambda_x, double lambda_y, double lambda_z, const coherence_energy_OP *options);
 static inline double slope_z (double t, double PEk, double Gamma, double lambda_x, double lambda_y, double lambda_z, const coherence_energy_OP *options);
+static inline void lambda_next (double t, double PEk, double Gamma, double *lambda_x, double *lambda_y, double *lambda_z, const coherence_energy_OP *options);
 static int compareCoherenceQCells (const void *p1, const void *p2) ;
+static int compareCellPositions (const void *p1, const void *p2) ;
 static inline double calculate_clock_value (unsigned int clock_num, unsigned long int sample, unsigned long int number_samples_per_period, const coherence_energy_OP *options);
 static void coherence_initialize_all_diss (int number_of_cell_layers, int *number_of_cells_in_layer, QCADCell ***sorted_cells, coherence_energy_OP *options, int clock_cycles);
 static inline double calculate_diss_bath(double lambda_x, double lambda_z, double Gamma, double PEk, const coherence_energy_OP *options);
@@ -197,6 +196,8 @@ simulation_data *run_coherence_energy_simulation (int SIMULATION_TYPE, DESIGN *d
     command_history_message ("QCADesignerE_Diss.trace can't be created!\n");
     disstrace_open = 0;
   }
+  else
+    disstrace_open = 1;
   
 
   // -- get the starting time for the simulation -- //
@@ -214,7 +215,11 @@ simulation_data *run_coherence_energy_simulation (int SIMULATION_TYPE, DESIGN *d
     record_interval = 1;
     }
   else
+    {
     record_interval = (unsigned long int)ceil ((double)(number_samples - 1) / (double)(number_recorded_samples));
+    // Record exactly the samples the loop below writes: one every record_interval, starting at 0
+    number_recorded_samples = (number_samples - 1) / record_interval + 1;
+    }
 
   //fill in some of the optimizations
   optimization_options.clock_prefactor = (options->clock_high - options->clock_low);
@@ -268,8 +273,7 @@ simulation_data *run_coherence_energy_simulation (int SIMULATION_TYPE, DESIGN *d
   sim_data = g_malloc0 (sizeof(simulation_data)) ;
 
   // -- Initialize the simualtion data structure -- //
-  // FST was: sim_data->number_of_traces = design->bus_layout->inputs->icUsed + design->bus_layout->outputs->icUsed;
-  sim_data->number_of_traces = design->bus_layout->inputs->icUsed + 4*design->bus_layout->outputs->icUsed;
+  sim_data->number_of_traces = design->bus_layout->inputs->icUsed + design->bus_layout->outputs->icUsed;
 
   // set the number of simulation samples to be the desired number of recorded samples //
   sim_data->number_samples = number_recorded_samples;
@@ -289,7 +293,7 @@ simulation_data *run_coherence_energy_simulation (int SIMULATION_TYPE, DESIGN *d
   // create and initialize the outputs into the sim data structure //
   for (i = 0; i < design->bus_layout->outputs->icUsed; i++)
     { 
-    int j = i + total_number_of_inputs;   	
+    int j = i + design->bus_layout->inputs->icUsed;
     sim_data->trace[j].data_labels = g_strdup (qcad_cell_get_label (exp_array_index_1d (design->bus_layout->outputs, BUS_LAYOUT_CELL, i).cell));
     sim_data->trace[j].drawtrace = TRUE;
     sim_data->trace[j].trace_function = QCAD_CELL_OUTPUT;
@@ -365,10 +369,7 @@ simulation_data *run_coherence_energy_simulation (int SIMULATION_TYPE, DESIGN *d
         {
         if (((QCAD_CELL_INPUT == sorted_cells[i][j]->cell_function)||
              (QCAD_CELL_FIXED == sorted_cells[i][j]->cell_function)))
-          {
-          j++;
           continue;
-          }
 
         PEk = 0;
         // Calculate the sum of neighboring polarizations * the kink energy between them//
@@ -386,12 +387,17 @@ simulation_data *run_coherence_energy_simulation (int SIMULATION_TYPE, DESIGN *d
         qcad_cell_set_polarization(sorted_cells[i][j], ((coherence_model *)sorted_cells[i][j]->cell_model)->lambda_z);
 
         // if the lambda values are different by more then the tolerance then they have not converged //
-        stable =
-          !(fabs (((coherence_model *)sorted_cells[i][j]->cell_model)->lambda_x - old_lambda_x) > 1e-7 ||
+        if (fabs (((coherence_model *)sorted_cells[i][j]->cell_model)->lambda_x - old_lambda_x) > 1e-7 ||
             fabs (((coherence_model *)sorted_cells[i][j]->cell_model)->lambda_y - old_lambda_y) > 1e-7 ||
-            fabs (((coherence_model *)sorted_cells[i][j]->cell_model)->lambda_z - old_lambda_z) > 1e-7) ;
+            fabs (((coherence_model *)sorted_cells[i][j]->cell_model)->lambda_z - old_lambda_z) > 1e-7)
+          stable = FALSE ;
         }
     k++;
+    if (!stable && k >= MAX_INITIAL_ITERATIONS)
+      {
+      command_history_message ("The initial steady state polarization did not converge after %d iterations\n", k);
+      break;
+      }
     }
 
   command_history_message ("It took %d iterations to converge the initial steady state polarization\n", k);
@@ -503,7 +509,7 @@ simulation_data *run_coherence_energy_simulation (int SIMULATION_TYPE, DESIGN *d
           {
           command_history_message ("I had to abort the simulation at iteration %d because the polarization = %e was diverging.\nPossible cause is the time step is too large.\nAlternatively, you can decrease the relaxation time to reduce oscillations.\n",sample, ((coherence_model *)sorted_cells[k][l]->cell_model)->lambda_z);
           command_history_message ("time step was set to %e\n", options->time_step);
-          return sim_data;
+          goto simulation_cleanup;
           }
         qcad_cell_set_polarization (sorted_cells[k][l], ((coherence_model *)sorted_cells[k][l]->cell_model)->lambda_z);  // was lambda_z
         
@@ -512,39 +518,22 @@ simulation_data *run_coherence_energy_simulation (int SIMULATION_TYPE, DESIGN *d
     // -- collect all the output data from the simulation -- //
     if (0 == sample % record_interval)
       for (design_bus_layout_iter_first (design->bus_layout, &bli, QCAD_CELL_OUTPUT, &i) ; i > -1 ; design_bus_layout_iter_next (&bli, &i)) {
-        sim_data->trace[total_number_of_inputs + i].data[sample/record_interval] =
+        sim_data->trace[design->bus_layout->inputs->icUsed + i].data[sample/record_interval] =
         	qcad_cell_calculate_polarization (exp_array_index_1d (design->bus_layout->outputs, BUS_LAYOUT_CELL, i).cell) ;      
 	}
-  if (TRUE == STOP_SIMULATION) return sim_data;
+  if (TRUE == STOP_SIMULATION) goto simulation_cleanup;
 
   }
   
   
   // FST: print Energy
   //int sort[100][100]; // array of cells
-  int **sort;
-  int c, idx;
-  double x_min, y_min;
-  int dim_x, dim_y; // dimensions of x and y coordinates
-  int sort_x, sort_y; // x,y coods of cell in sort array
+  int idx;
+  double x_min = 0, y_min = 0;
+  int sort_x, sort_y; // x,y position of a cell, in units of CELL_DIST, for the messages below
 
   command_history_message("\n********* Energy Dissipation in eV ********** \n");
     
-  
-  // sort array
-  // 1. Determine design sizes (over rcWorld)
-  // 2. Determin dimensions of x and y in number of cells
-  // 3. dynamic array sort[dim_x][dim_y]
-  WorldRectangle rcWorld ;
-  design_get_extents (design, &rcWorld, FALSE) ;
-  dim_x = (rcWorld.cxWorld / CELL_DIST) + 2;
-  dim_y = (rcWorld.cyWorld / CELL_DIST) + 2;
-  
-  sort = malloc (sizeof (int *) * dim_x);
-  for (i = 0; i < dim_x; i++) {
-    //*(sort + i) = malloc (sizeof (int) * dim_y);
-   sort[i] =  malloc (sizeof (int) * dim_y);
-  }
   
   double *E_error_total; // complete error of energy dissipation of all cells
   double *E_bath_total; //complete error dissipation
@@ -581,26 +570,15 @@ simulation_data *run_coherence_energy_simulation (int SIMULATION_TYPE, DESIGN *d
 	y_min = QCAD_DESIGN_OBJECT(sorted_cells[k][i])->y;
     }
     
-    //2nd: reset array
-    for ( sort_x = 0; sort_x < dim_x; sort_x++)
-      for ( sort_y = 0; sort_y < dim_y; sort_y++) 
-	sort[sort_x][sort_y] = -1;    	
-      
-   
-    // 3rd place cell into array
-    // distance is fixed: dX=20, dy=20 = CELL_DIST
-    for ( c = 0; c < number_of_cells_in_layer[k]; c++) {
-      sort_x = 1+(QCAD_DESIGN_OBJECT(sorted_cells[k][c])->x - x_min) / CELL_DIST;
-      sort_y = 1+(QCAD_DESIGN_OBJECT(sorted_cells[k][c])->y - y_min) / CELL_DIST;
-      sort[sort_x][sort_y] = c;      
-    }
-        
+    //2nd: report the cells in order of position
+    if (number_of_cells_in_layer[k] > 0)
+      qsort (sorted_cells[k], number_of_cells_in_layer[k], sizeof (QCADCell *), compareCellPositions);
+
     //determine total E_diss, E_clk, E_error
-    for (sort_x = 1; sort_x < dim_x; sort_x++) {
-      for (sort_y = 1; sort_y < dim_y; sort_y++) {	
-	
-	if (sort[sort_x][sort_y] != -1){ // cell exists?
-	  l = sort[sort_x][sort_y];  
+    for (l = 0; l < number_of_cells_in_layer[k]; l++) {
+      sort_x = 1 + (QCAD_DESIGN_OBJECT(sorted_cells[k][l])->x - x_min) / CELL_DIST;
+      sort_y = 1 + (QCAD_DESIGN_OBJECT(sorted_cells[k][l])->y - y_min) / CELL_DIST;
+
 	  
 	  // don't consider last value from clk 0
 	  if (sorted_cells[k][l]->cell_options.clock == 0) {
@@ -631,16 +609,14 @@ simulation_data *run_coherence_energy_simulation (int SIMULATION_TYPE, DESIGN *d
 	  } else
 	    command_history_message("Ignore for total energy/error: Layer: %d, Cell [ %d ] [ %d ] (%.1e ; %.1e)\n",k,sort_x,sort_y,
 	      	    QCAD_DESIGN_OBJECT(sorted_cells[k][l])->x,QCAD_DESIGN_OBJECT(sorted_cells[k][l])->y);
-	}	  	  
-      }
     }
     
     if (options->display_cell_diss == TRUE) {
       // 1st cell starts with 1 (not 0)
-      for (sort_x = 1; sort_x < dim_x; sort_x++) {
-	for (sort_y = 1; sort_y < dim_y; sort_y++) {	
-	  if (sort[sort_x][sort_y] != -1) {
-	    l = sort[sort_x][sort_y];
+    for (l = 0; l < number_of_cells_in_layer[k]; l++) {
+      sort_x = 1 + (QCAD_DESIGN_OBJECT(sorted_cells[k][l])->x - x_min) / CELL_DIST;
+      sort_y = 1 + (QCAD_DESIGN_OBJECT(sorted_cells[k][l])->y - y_min) / CELL_DIST;
+
 	    command_history_message("\nLayer: %d, Cell [ %d ] [ %d ] (%.1e ; %.1e), idx = %d\n",k,sort_x,sort_y,
 	      	    QCAD_DESIGN_OBJECT(sorted_cells[k][l])->x,QCAD_DESIGN_OBJECT(sorted_cells[k][l])->y,((coherence_model *)sorted_cells[k][l]->cell_model)->diss_idx );
 	  
@@ -692,9 +668,6 @@ simulation_data *run_coherence_energy_simulation (int SIMULATION_TYPE, DESIGN *d
 	    int q;
 	    for (q = 0 ; q < num_neighbours ; q++)
 	      command_history_message("Ek[%d] = %e\n",q, ((coherence_model *)sorted_cells[k][l]->cell_model)->Ek[q] / QCHARGE);		
-	    	
-	  }
-	}
       }
     }
      
@@ -730,7 +703,13 @@ simulation_data *run_coherence_energy_simulation (int SIMULATION_TYPE, DESIGN *d
       
   command_history_message("\n********************************************************\n");
   printf("\nAll printed \n");
+  g_free (E_error);
+  g_free (E_error_total);
+  g_free (E_bath_total);
+  g_free (E_clk_total);
   //FST_end
+
+simulation_cleanup:
   
   // Free the neigbours and Ek array introduced by this simulation//
   for (k = 0; k < number_of_cell_layers; k++)
@@ -739,6 +718,13 @@ simulation_data *run_coherence_energy_simulation (int SIMULATION_TYPE, DESIGN *d
       g_free (((coherence_model *)sorted_cells[k][l]->cell_model)->neighbours);
       g_free (((coherence_model *)sorted_cells[k][l]->cell_model)->neighbour_layer);
       g_free (((coherence_model *)sorted_cells[k][l]->cell_model)->Ek);
+      g_free (((coherence_model *)sorted_cells[k][l]->cell_model)->Int_diss_bath);
+      g_free (((coherence_model *)sorted_cells[k][l]->cell_model)->Int_diss_clk);
+      g_free (((coherence_model *)sorted_cells[k][l]->cell_model)->Int_diss_io);
+      g_free (((coherence_model *)sorted_cells[k][l]->cell_model)->Int_diss_in);
+      g_free (((coherence_model *)sorted_cells[k][l]->cell_model)->Int_diss_out);
+      g_free (sorted_cells[k][l]->cell_model);
+      sorted_cells[k][l]->cell_model = NULL;
       }
 
   simulation_inproc_data_free (&number_of_cell_layers, &number_of_cells_in_layer, &sorted_cells) ;
@@ -746,7 +732,7 @@ simulation_data *run_coherence_energy_simulation (int SIMULATION_TYPE, DESIGN *d
   // Restore the input flag for the inactive inputs
   if (VECTOR_TABLE == SIMULATION_TYPE)
     for (i = 0 ; i < pvt->inputs->icUsed ; i++)
-      exp_array_index_1d (pvt->inputs, BUS_LAYOUT_CELL, i).cell->cell_function = QCAD_CELL_INPUT ;
+      exp_array_index_1d (pvt->inputs, VT_INPUT, i).input->cell_function = QCAD_CELL_INPUT ;
 
   // -- get and print the total simulation time -- //
   if ((end_time = time (NULL)) < 0)
@@ -758,12 +744,6 @@ simulation_data *run_coherence_energy_simulation (int SIMULATION_TYPE, DESIGN *d
   
   if (disstrace_open == 1)
   	fclose(diss_trace_file);
-  
-  //free sort
-  for (i = 0; i < dim_x; i++)
-    free (sort[i]);
-  free (sort);
-
   
   return sim_data;
   }//run_coherence
@@ -865,9 +845,10 @@ static void run_coherence_iteration (unsigned long int sample_number, unsigned l
       lambda_y = ((coherence_model *)sorted_cells[i][j]->cell_model)->lambda_y;
       lambda_z = ((coherence_model *)sorted_cells[i][j]->cell_model)->lambda_z;
 
-      lambda_x_new = lambda_x_next (t, PEk, clock_value, lambda_x, lambda_y, lambda_z, options);
-      lambda_y_new = lambda_y_next (t, PEk, clock_value, lambda_x, lambda_y, lambda_z, options);
-      lambda_z_new = lambda_z_next (t, PEk, clock_value, lambda_x, lambda_y, lambda_z, options);
+      lambda_x_new = lambda_x;
+      lambda_y_new = lambda_y;
+      lambda_z_new = lambda_z;
+      lambda_next (t, PEk, clock_value, &lambda_x_new, &lambda_y_new, &lambda_z_new, options);
 
       ((coherence_model *)sorted_cells[i][j]->cell_model)->lambda_x = lambda_x_new;
       ((coherence_model *)sorted_cells[i][j]->cell_model)->lambda_y = lambda_y_new;
@@ -1200,80 +1181,6 @@ static inline double calculate_clock_value (unsigned int clock_num, unsigned lon
 
 //-------------------------------------------------------------------//
 
-// Next value of lambda x with choice of algorithm
-static inline double lambda_x_next (double t, double PEk, double Gamma, double lambda_x, double lambda_y, double lambda_z, const coherence_energy_OP *options)
-  {
-  double k1 = options->time_step * slope_x (t, PEk, Gamma, lambda_x, lambda_y, lambda_z, options);
-  double k2, k3, k4;
-  
-  if (RUNGE_KUTTA == options->algorithm)
-    {
-    k2 = options->time_step * slope_x (t, PEk, Gamma, lambda_x + k1/2, lambda_y, lambda_z, options);
-    k3 = options->time_step * slope_x (t, PEk, Gamma, lambda_x + k2/2, lambda_y, lambda_z, options);
-    k4 = options->time_step * slope_x (t, PEk, Gamma, lambda_x + k3,   lambda_y, lambda_z, options);
-    return lambda_x + k1/6 + k2/3 + k3/3 + k4/6;
-    }
-  else
-  if (EULER_METHOD == options->algorithm)
-    return lambda_x + k1;
-  else
-    command_history_message ("coherence vector undefined algorithm\n");
-
-  return 0;
-  }
-
-// Next value of lambda y with choice of algorithm
-static inline double lambda_y_next (double t, double PEk, double Gamma, double lambda_x, double lambda_y, double lambda_z, const coherence_energy_OP *options)
-  {
-  double k1 = options->time_step * slope_y (t, PEk, Gamma, lambda_x, lambda_y, lambda_z, options);
-  double k2, k3, k4;
-
-  if (RUNGE_KUTTA == options->algorithm)
-    {
-    k2 = options->time_step * slope_y (t, PEk, Gamma, lambda_x, lambda_y + k1/2, lambda_z, options);
-    k3 = options->time_step * slope_y (t, PEk, Gamma, lambda_x, lambda_y + k2/2, lambda_z, options);
-    k4 = options->time_step * slope_y (t, PEk, Gamma, lambda_x, lambda_y + k3,   lambda_z, options);
-    return lambda_y + k1/6 + k2/3 + k3/3 + k4/6;
-    }
-  else
-  if (EULER_METHOD == options->algorithm)
-    return lambda_y + k1;
-  else
-    command_history_message("coherence vector undefined algorithm\n");
-
-  return 0;
-  }// FST how many clock cycles shall be stored in Energy arry
-#define CLKCYCLES 
-
-// Next value of lambda z with choice of algorithm
-static inline double lambda_z_next (double t, double PEk, double Gamma, double lambda_x, double lambda_y, double lambda_z, const coherence_energy_OP *options)
-  {
-  double k1 = options->time_step * slope_z (t, PEk, Gamma, lambda_x, lambda_y, lambda_z, options);
-  double k2, k3, k4;
- 
-  if (RUNGE_KUTTA == options->algorithm)
-    {
-    k2 = options->time_step * slope_z(t, PEk, Gamma, lambda_x, lambda_y, lambda_z + k1/2, options);
-    k3 = options->time_step * slope_z(t, PEk, Gamma, lambda_x, lambda_y, lambda_z + k2/2, options);
-    k4 = options->time_step * slope_z(t, PEk, Gamma, lambda_x, lambda_y, lambda_z + k3,   options);
-    return lambda_z + k1/6 + k2/3 + k3/3 + k4/6;
-    }
-  else
-  if (EULER_METHOD == options->algorithm) {
-    //double tmp = lambda_z + k1;
-    //if ((tmp == lambda_z)&&(k1 != 0.0)) {
-    //printf("Error: k1 != slope*tau, k1 = %e, lz = %e, lz+k1 = %e\n", k1,lambda_z, lambda_z + k1 );
-    //  while (tmp == lambda_z) {
-    //	k1 = 2*k1;
-    //  tmp = lambda_z + k1;
-    //  }     
-    return lambda_z + k1;
-  }else
-    command_history_message("coherence vector undefined algorithm\n");
-
-  return 0;
-  }
-
 static inline double slope_x (double t, double PEk, double Gamma, double lambda_x, double lambda_y, double lambda_z, const coherence_energy_OP *options) {
   // FST: improved calculation: remove unnecessarry over_hbar 
   // double mag = magnitude_energy_vector (PEk, Gamma);
@@ -1301,6 +1208,45 @@ static inline double slope_z (double t, double PEk, double Gamma, double lambda_
     double mag_noh = hypot(2.0*Gamma, PEk);
   // mod: return (PEk * tanh (mag_noh/(2*kB*options->T)) + mag_noh * (over_hbar * 2.0 * Gamma * options->relaxation * lambda_y - lambda_z)) / (options->relaxation * mag_noh);
     return -2.0*Gamma*over_hbar*lambda_y - (lambda_z - PEk/mag_noh * tanh (temp_ratio (PEk, Gamma, options->T)) ) / options->relaxation;
+  }
+
+// Advances lambda x, y and z together by one time step with the chosen algorithm
+static inline void lambda_next (double t, double PEk, double Gamma, double *lambda_x, double *lambda_y, double *lambda_z, const coherence_energy_OP *options)
+  {
+  double dt = options->time_step ;
+  double x = *lambda_x, y = *lambda_y, z = *lambda_z ;
+  double k1x = dt * slope_x (t, PEk, Gamma, x, y, z, options) ;
+  double k1y = dt * slope_y (t, PEk, Gamma, x, y, z, options) ;
+  double k1z = dt * slope_z (t, PEk, Gamma, x, y, z, options) ;
+
+  if (RUNGE_KUTTA == options->algorithm)
+    {
+    double k2x = dt * slope_x (t, PEk, Gamma, x + k1x/2, y + k1y/2, z + k1z/2, options) ;
+    double k2y = dt * slope_y (t, PEk, Gamma, x + k1x/2, y + k1y/2, z + k1z/2, options) ;
+    double k2z = dt * slope_z (t, PEk, Gamma, x + k1x/2, y + k1y/2, z + k1z/2, options) ;
+    double k3x = dt * slope_x (t, PEk, Gamma, x + k2x/2, y + k2y/2, z + k2z/2, options) ;
+    double k3y = dt * slope_y (t, PEk, Gamma, x + k2x/2, y + k2y/2, z + k2z/2, options) ;
+    double k3z = dt * slope_z (t, PEk, Gamma, x + k2x/2, y + k2y/2, z + k2z/2, options) ;
+    double k4x = dt * slope_x (t, PEk, Gamma, x + k3x, y + k3y, z + k3z, options) ;
+    double k4y = dt * slope_y (t, PEk, Gamma, x + k3x, y + k3y, z + k3z, options) ;
+    double k4z = dt * slope_z (t, PEk, Gamma, x + k3x, y + k3y, z + k3z, options) ;
+
+    *lambda_x = x + k1x/6 + k2x/3 + k3x/3 + k4x/6 ;
+    *lambda_y = y + k1y/6 + k2y/3 + k3y/3 + k4y/6 ;
+    *lambda_z = z + k1z/6 + k2z/3 + k3z/3 + k4z/6 ;
+    }
+  else
+  if (EULER_METHOD == options->algorithm)
+    {
+    *lambda_x = x + k1x ;
+    *lambda_y = y + k1y ;
+    *lambda_z = z + k1z ;
+    }
+  else
+    {
+    command_history_message ("coherence vector undefined algorithm\n") ;
+    *lambda_x = *lambda_y = *lambda_z = 0 ;
+    }
   }
 
 //-------------------------------------------------------------------------------------------------------------------------//
@@ -1363,6 +1309,19 @@ static inline double calculate_diss_io(double lambda_z, double PEk, double Old_P
   return ( 0.5 * lambda_z * (PEk-Old_PEk)/(time_step) ); 
   }
   
+
+// Orders cells by x, then by y
+static int compareCellPositions (const void *p1, const void *p2)
+  {
+  QCADDesignObject *obj1 = QCAD_DESIGN_OBJECT (*((QCADCell **)p1));
+  QCADDesignObject *obj2 = QCAD_DESIGN_OBJECT (*((QCADCell **)p2));
+
+  return
+    obj1->x > obj2->x ?  1 :
+    obj1->x < obj2->x ? -1 :
+    obj1->y > obj2->y ?  1 :
+    obj1->y < obj2->y ? -1 : 0 ;
+  }
 
 static int compareCoherenceQCells (const void *p1, const void *p2)
   {

@@ -2,6 +2,16 @@ UNRELEASED
 - fixed crash when opening the Vector Table Setup dialog
 - fixed crash when closing the Vector Table Setup and graph windows with the window X button
 - fixed results window dropping traces after a bus
+- fixed COS clock: clocks 0/2 and 1/3 were identical because the phase shift was applied twice
+- fixed initial steady state: every cell now has to converge, and the energy engine starts from the steady state of its own equations
+- fixed bistable engine stopping an iteration as soon as the last cell was stable, instead of all cells
+- fixed RAMP clock reporting no energy dissipation when a clock landed exactly on its middle value
+- fixed energy totals dropping cells closer than 20 nm, and a memory overflow with hidden layers
+- fixed crash when saving energy simulation results
+- fixed output traces being misplaced when vector table inputs are inactive
+- fixed stopped or diverged simulations leaving inactive inputs as normal cells
+- fixed memory overflow and trailing zeros in recorded traces, depending on the number of samples
+- Runge-Kutta now advances the coherence vector components together
 - Shift + mouse wheel zooms at the mouse pointer
 - Shift + middle mouse button drag pans in any tool
 - generated files are no longer tracked, and configure can be run directly from a fresh clone
