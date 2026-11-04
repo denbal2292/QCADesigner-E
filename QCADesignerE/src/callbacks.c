@@ -251,6 +251,7 @@ static ACTION actions[ACTION_LAST_ACTION] =
   } ;
 
 static int xRef, yRef, xOld, yOld ; // zoom window coordinates
+static gboolean bZoomWindow = FALSE ; // TRUE: middle button draws a zoom window. FALSE: it pans
 
 void main_window_show (GtkWidget *widget, gpointer data)
   {
@@ -332,9 +333,10 @@ gboolean drawing_area_button_pressed (GtkWidget *widget, GdkEventButton *event, 
   if (3 == event->button)
     gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (main_window.default_action_button), TRUE) ;
   else
-  // Zoom
+  // Middle button zooms to a window, Shift + middle button pans
   if (2 == event->button)
     {
+    bZoomWindow = !(event->state & GDK_SHIFT_MASK) ;
     xOld = xRef = event->x ;
     yOld = yRef = event->y ;
     }
@@ -348,6 +350,24 @@ gboolean drawing_area_motion_notify (GtkWidget *widget, GdkEventMotion *event, g
 
   propagate_motion_to_rulers (widget, event) ;
 
+  if ((event->state & GDK_BUTTON2_MASK) && !bZoomWindow)
+    {
+    // Scrolling would smear whatever the left button is drawing, so wait for it
+    if (!(event->state & GDK_BUTTON1_MASK))
+      {
+      int cxPan = (int)event->x - xOld, cyPan = (int)event->y - yOld ;
+
+      if (!(0 == cxPan && 0 == cyPan))
+        {
+        pan (cxPan, cyPan) ;
+        gdk_window_scroll (widget->window, cxPan, cyPan) ;
+        setup_rulers (event->x, event->y) ;
+        }
+      }
+    xOld = event->x ;
+    yOld = event->y ;
+    }
+  else
   if (event->state & GDK_BUTTON2_MASK)
     {
     GdkGC *gc = gdk_gc_new (widget->window) ;
@@ -371,7 +391,7 @@ gboolean drawing_area_motion_notify (GtkWidget *widget, GdkEventMotion *event, g
 
 gboolean drawing_area_button_released (GtkWidget *widget, GdkEventButton *event, gpointer user_data)
   {
-  if (event->state & GDK_BUTTON2_MASK && !((event->state & GDK_BUTTON3_MASK) || (event->state & GDK_BUTTON1_MASK)))
+  if (bZoomWindow && event->state & GDK_BUTTON2_MASK && !((event->state & GDK_BUTTON3_MASK) || (event->state & GDK_BUTTON1_MASK)))
     {
     GdkGC *gc = gdk_gc_new (widget->window) ;
 
@@ -382,8 +402,12 @@ gboolean drawing_area_button_released (GtkWidget *widget, GdkEventButton *event,
 
     g_object_unref (gc) ;
 
-    zoom_window (MIN (xRef, xOld), MIN (yRef, yOld), MAX (xRef, xOld), MAX (yRef, yOld)) ;
-    reflect_zoom () ;
+    // A click without a drag has no window to zoom to
+    if (ABS (xRef - xOld) > 0 && ABS (yRef - yOld) > 0)
+      {
+      zoom_window (MIN (xRef, xOld), MIN (yRef, yOld), MAX (xRef, xOld), MAX (yRef, yOld)) ;
+      reflect_zoom () ;
+      }
     }
   return FALSE ;
   }
