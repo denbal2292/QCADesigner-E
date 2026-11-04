@@ -1304,13 +1304,13 @@ static inline double slope_z (double t, double PEk, double Gamma, double lambda_
 //-------------------------------------------------------------------------------------------------------------------------//
 
 // Steady-State Coherence Vector X component
-// FST: missing inversion!
+// This is the value slope_x relaxes to, so a cell starting here has no initial transient
 static inline double lambda_ss_x(double t, double PEk, double Gamma, const coherence_energy_OP *options) {
   // FST: improved calculation: remove unnecessarry over_hbar
   // old return -2.0 * Gamma * over_hbar / magnitude_energy_vector(PEk, Gamma) * tanh (temp_ratio (PEk, Gamma, options->T));
   // old_mod: return -2.0 * Gamma / mag_noh * tanh (temp_ratio (PEk, Gamma, options->T));
   double mag_noh = hypot(2.0*Gamma, PEk);
-  return ((2.0 * Gamma) / mag_noh) * tanh (temp_ratio (PEk, Gamma, options->T));
+  return ((-2.0 * Gamma) / mag_noh) * tanh (temp_ratio (PEk, Gamma, options->T));
 }
 
 // Steady-State Coherence Vector y component
@@ -1318,13 +1318,13 @@ static inline double lambda_ss_y (double t, double PEk, double Gamma, const cohe
   {return 0.0;}
 
 // Steady-State Coherence Vector Z component
-// FST: missing inversion!
+// This is the value slope_z relaxes to, so a cell starting here has no initial transient
 static inline double lambda_ss_z(double t, double PEk, double Gamma, const coherence_energy_OP *options) {
   // FST: improved calculation: remove unnecessarry over_hbarcell_model->cell_options.clock
   // old: return PEk * over_hbar / magnitude_energy_vector (PEk, Gamma) * tanh (temp_ratio (PEk, Gamma, options->T));
   double mag_noh = hypot(2.0*Gamma, PEk);
   //old_mod: return PEk / mag_noh * tanh (temp_ratio (PEk, Gamma, options->T));
-  return ((-1.0 * PEk) / mag_noh) * tanh (temp_ratio (PEk, Gamma, options->T));
+  return (PEk / mag_noh) * tanh (temp_ratio (PEk, Gamma, options->T));
 }
   
 // FST: integrand of Energy dissipation to bath 
