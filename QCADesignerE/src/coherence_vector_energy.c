@@ -894,7 +894,8 @@ static void run_coherence_iteration (unsigned long int sample_number, unsigned l
       // use middle of clock zones
       //if (((old_next_clock_zone == options->clock_low) && (next_clk_zone > options->clock_low))
       //printf("CZ %d = %e (m= %e) \n",sorted_cells[i][j]->cell_options.clock,next_clk_zone,optimization_options.clock_middle );
-      if (((old_next_clock_zone < optimization_options.clock_middle) && (next_clk_zone > optimization_options.clock_middle )) 	        
+      // >= because a RAMP clock can land exactly on the middle value, which is still a crossing
+      if (((old_next_clock_zone < optimization_options.clock_middle) && (next_clk_zone >= optimization_options.clock_middle ))
 	){
 	  //|| ((old_next_clock_zone == options->clock_high) && (next_clk_zone < options->clock_high)) ) {
 	  	   
@@ -1130,6 +1131,7 @@ static inline double calculate_clock_value (unsigned int clock_num, unsigned lon
   // increase by one full period, to avoid negative values in 1st clock cycle
   sample = sample + number_samples_per_period;
   // sample = shifted by 1/4*clock_phase mod samples_per_period
+  // (this is the only phase shift between clocks: the formulas below must not add another)
   sample = (sample - clock_num * (number_samples_per_period>>2) ) % number_samples_per_period;
  
   
@@ -1149,7 +1151,7 @@ static inline double calculate_clock_value (unsigned int clock_num, unsigned lon
    
   if (options->clock_type == COS) {    
       clock = optimization_options.clock_prefactor *
-      cos ( (double) TWO_PI * sample / number_samples_per_period - PI * (double)clock_num * 0.5) + optimization_options.clock_shift + options->clock_shift;
+      cos ( (double) TWO_PI * sample / number_samples_per_period) + optimization_options.clock_shift + options->clock_shift;
   }
 
   if (options->clock_type == RAMP) {
