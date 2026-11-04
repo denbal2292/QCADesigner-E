@@ -11,6 +11,12 @@ K. Walus, T. J. Dysart, G. A. Jullien, and R. A. Budiman, "QCADesigner: a rapid 
 
 Installation
 ============
+Install the build requirements. On Ubuntu or Debian:
+
+```sh
+$ sudo apt install build-essential pkg-config libgtk2.0-dev
+```
+
 Switch to source folder of the project:
 
 ```sh
@@ -38,14 +44,18 @@ $ make install
 Run QCADesignerE with
 
 ```sh
-$ bin\QCADesigner &
+$ /home/your_account/your_install_location/bin/QCADesignerE &
 ```
+
+The icons and other data files are looked up in the locations set by `configure`, so run `make install` before moving or deleting the source folder. To try the program without installing it, run `./src/QCADesigner` from `QCADesignerE`.
+
+You only need `./autogen.sh` after changing `configure.in` or a `Makefile.am`. It requires `autoconf` and `automake`, and it regenerates `configure` and the `Makefile.in` files.
 
 Information
 ===========
 - You can find a list of pre-implemented cells in the folder "circuits".
 
-- A detailed description of the QCADesigner can be found in the folder "QCAEnergy\src\docs\manual"
+- A detailed description of the QCADesigner can be found in the folder "QCADesignerE/docs/manual"
 
 - You can find a description of the parts that have been added to the QCADesigner-E in file "Manual_QDE.pdf"
 

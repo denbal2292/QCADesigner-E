@@ -56,6 +56,10 @@ These instructions should guide you through he installation procedure.
 
 <a name="source">
 <h3>From Source</h3>
+<p>You need a C compiler, <i>make</i>, <i>pkg-config</i> and the GTK+ 2 development files. On Ubuntu or Debian:
+
+<p><i>sudo apt install build-essential pkg-config libgtk2.0-dev</i>
+
 <p>Download the source from the <a href="http://www.qcadesigner.ca/download.html">download page</a>. Extract the package to a known directory by typing
 
 <p><i>tar -xzvf QCADesigner[version you downloaded].tar.gz</i> &larr; For tar.gz sources.
@@ -69,7 +73,7 @@ These instructions should guide you through he installation procedure.
    your system. The <i>configure</i> script provides many options. The most commonly used one
    is <i>--prefix=[directory]</i>, where <i>directory</i> is the directory where you would
    like to install <strong>QCA<em>Designer</em></strong>. Once installed, the
-   <strong>QCA<em>Designer</em></strong> program will be at <i>directory/bin/QCADesigner</i>.
+   <strong>QCA<em>Designer</em></strong> program will be at <i>directory/bin/QCADesignerE</i>.
    For example:</p>
 
 <p><i> ./configure --prefix=/home/your_account/your_install_location</i>
@@ -85,7 +89,13 @@ These instructions should guide you through he installation procedure.
 <p><i>make install</i>
 
       <p>Run <strong>QCA<em>Designer</em></strong> with 
-      <p><i>QCADesigner &amp;</i>
+      <p><i>directory/bin/QCADesignerE &amp;</i>
+
+<p>The icons and other data files are looked up in the locations set by <i>configure</i>, so run
+   <i>make install</i> before moving or deleting the source folder.
+
+<p>You only need <i>./autogen.sh</i> after changing <i>configure.in</i> or a <i>Makefile.am</i>. It requires
+   <i>autoconf</i> and <i>automake</i>, and it regenerates <i>configure</i> and the <i>Makefile.in</i> files.
 
 <p>Voila!
 

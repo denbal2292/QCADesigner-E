@@ -17,5 +17,6 @@ make install
 
 "ls <Your path>" should show a "bin" and "share" directory
 that contain all the files that QCADesigner has installed.
-You can then use the script provided above to run
-QCADesigner.
+You can then run the program with:
+
+<Your path>/bin/QCADesignerE

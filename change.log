@@ -1,3 +1,13 @@
+UNRELEASED
+- fixed crash when opening the Vector Table Setup dialog
+- fixed crash when closing the Vector Table Setup and graph windows with the window X button
+- fixed results window dropping traces after a bus
+- Shift + mouse wheel zooms at the mouse pointer
+- Shift + middle mouse button drag pans in any tool
+- generated files are no longer tracked, and configure can be run directly from a fresh clone
+- fixed autogen.sh, which is now only needed after changing the build files
+
+
 VERSION: 2.2 (13/SEP/2018)
 
 - modified files:

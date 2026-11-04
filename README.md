@@ -55,7 +55,7 @@ Information
 ===========
 - You can find a list of pre-implemented cells in the folder "circuits".
 
-- A detailed description of the QCADesigner can be found in the folder "QCAEnergy\src\docs\manual"
+- A detailed description of the QCADesigner can be found in the folder "QCADesignerE/docs/manual"
 
 - You can find a description of the parts that have been added to the QCADesigner-E in file "Manual_QDE.pdf"
 
