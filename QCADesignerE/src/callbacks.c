@@ -87,6 +87,7 @@
 #define DBG_MERGE(s)
 
 #define PAN_STEP 10
+#define SCROLL_ZOOM_FACTOR 1.1
 
 typedef struct
   {
@@ -579,6 +580,17 @@ gboolean scroll_event(GtkWidget *widget, GdkEventScroll *event, gpointer user_da
     dist[2] = {0, 0} ;
 
   DBG_CB_HERE (fprintf (stderr, "Entering scroll_event\n")) ;
+
+  // Shift + wheel zooms, keeping the point under the mouse pointer in place
+  if (event->state & GDK_SHIFT_MASK)
+    {
+    if (0 != iDir)
+      {
+      zoom_at_point ((int)event->x, (int)event->y, iDir > 0 ? SCROLL_ZOOM_FACTOR : 1.0 / SCROLL_ZOOM_FACTOR) ;
+      reflect_zoom () ;
+      }
+    return TRUE ;
+    }
 
   dist[idx] = 10 * PAN_STEP * iDir ;
 

@@ -43,6 +43,9 @@ typedef struct
 
 static EXP_ARRAY *transformation_stack = NULL ;
 
+#define MIN_POINT_ZOOM_SCALE 0.01
+#define MAX_POINT_ZOOM_SCALE 1000.0
+
 static int subs_top_x = 0, subs_top_y = 0 ;
 static double scale = 1 ; // pixels / nm
 static int cxClientArea = 0, cyClientArea = 0 ;
@@ -165,6 +168,21 @@ void zoom_in ()
 
 void reset_zoom ()
   {scale = 1.0 ;}
+
+//!Zooms by scale_factor, keeping the given client area point in place.
+void zoom_at_point (int x, int y, double scale_factor)
+  {
+  double new_scale = scale * scale_factor ;
+
+  // The scroll wheel can zoom quickly, so keep the integer offsets from overflowing
+  if (new_scale < MIN_POINT_ZOOM_SCALE || new_scale > MAX_POINT_ZOOM_SCALE) return ;
+
+  pan (
+    x - (int)NINT ((x - subs_top_x) * scale_factor) - subs_top_x,
+    y - (int)NINT ((y - subs_top_y) * scale_factor) - subs_top_y) ;
+
+  scale = new_scale ;
+  }
 
 //!Zooms to the provided window dimensions.
 void zoom_window (int top_x, int top_y, int bot_x, int bot_y)

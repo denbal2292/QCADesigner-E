@@ -82,6 +82,7 @@ void reset_zoom () ;
 void zoom_in ();
 void zoom_out ();
 void zoom_window (int top_x, int top_y, int bot_x, int bot_y) ;
+void zoom_at_point (int x, int y, double scale_factor) ;
 void set_snap_source (void *new_snap_source) ;
 gboolean is_real_rect_visible (GdkRectangle *rc) ;
 void get_world_viewport (double *pxMin, double *pyMin, double *pxMax, double *pyMax) ;
