@@ -215,7 +215,7 @@ void create_vector_table_options_dialog (vector_table_options_D *dialog)
 
   g_signal_connect (G_OBJECT (dialog->tv),     "style-set",    (GCallback)tree_view_style_set,                          NULL) ;
   g_signal_connect (G_OBJECT (cr),             "toggled",      (GCallback)vt_model_active_toggled,                      dialog->tv) ;
-  g_signal_connect (G_OBJECT (dialog->dialog), "delete-event", (GCallback)vector_table_options_dialog_btnClose_clicked, NULL) ;
+  g_signal_connect (G_OBJECT (dialog->dialog), "delete-event", (GCallback)gtk_widget_hide_on_delete,                       NULL) ;
 
   gtk_window_add_accel_group (GTK_WINDOW (dialog->dialog), accel_group) ;
   }

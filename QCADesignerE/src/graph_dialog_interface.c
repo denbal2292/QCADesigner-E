@@ -292,7 +292,7 @@ void create_graph_dialog (graph_D *dialog)
   g_signal_connect (G_OBJECT (dialog->tview), "row-collapsed", (GCallback)set_bus_expanded, (gpointer)FALSE) ;
   g_signal_connect (G_OBJECT (gtk_range_get_adjustment (GTK_RANGE (dialog->hscroll))), "value-changed", (GCallback)hscroll_adj_value_changed, dialog->dialog) ;
   g_signal_connect (G_OBJECT (dialog->vp), "scroll-event", (GCallback)viewport_scroll, dialog) ;
-  g_signal_connect (G_OBJECT (dialog->dialog), "delete-event", (GCallback)btnClose_clicked, NULL) ;
+  g_signal_connect (G_OBJECT (dialog->dialog), "delete-event", (GCallback)gtk_widget_hide_on_delete, NULL) ;
   }
 
 void attach_graph_widgets (graph_D *dialog, GtkWidget *table, GtkWidget *trace, GtkWidget *ruler, GtkWidget *ui, int idxTbl)
