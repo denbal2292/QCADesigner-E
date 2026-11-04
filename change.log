@@ -1,4 +1,4 @@
-UNRELEASED
+VERSION: 2.3 (04/NOV/2026)
 - fixed crash when opening the Vector Table Setup dialog
 - fixed crash when closing the Vector Table Setup and graph windows with the window X button
 - fixed results window dropping traces after a bus
