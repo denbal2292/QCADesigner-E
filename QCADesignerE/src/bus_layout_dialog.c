@@ -1171,7 +1171,8 @@ GtkWidget *create_bus_layout_tree_view (gboolean bColsVisible, char *pszColumnTi
 
 gboolean gtk_tree_model_iter_next_dfs (GtkTreeModel *model, GtkTreeIter *itr)
   {
-  GtkTreeIter itrTree ;
+  // gtk_tree_model_iter_next invalidates itr when it fails, but we still need the parent
+  GtkTreeIter itrTree, itrSaved = *itr ;
 
   if (gtk_tree_model_iter_n_children (model, itr) > 0)
     {
@@ -1188,7 +1189,7 @@ gboolean gtk_tree_model_iter_next_dfs (GtkTreeModel *model, GtkTreeIter *itr)
     return TRUE ;
   else
     {
-    if (!gtk_tree_model_iter_parent (model, &itrTree, itr))
+    if (!gtk_tree_model_iter_parent (model, &itrTree, &itrSaved))
       return FALSE ;
     else
     if (!gtk_tree_model_iter_next (model, &itrTree))
