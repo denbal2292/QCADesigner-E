@@ -1,3 +1,7 @@
+VERSION: 2.3.1 (04/NOV/2026)
+- fixed ruler digits being cut off with larger fonts
+
+
 VERSION: 2.3 (04/NOV/2026)
 - fixed crash when opening the Vector Table Setup dialog
 - fixed crash when closing the Vector Table Setup and graph windows with the window X button
