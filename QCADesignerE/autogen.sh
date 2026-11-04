@@ -50,6 +50,6 @@ else
   aclocal -I ${ACLOCAL_INCLUDE}
 fi
 
-automake --gnu --add-missing
 glib-gettextize -c
+automake --foreign --add-missing
 autoconf

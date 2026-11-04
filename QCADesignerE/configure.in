@@ -1,7 +1,12 @@
-\dnl Process this file with autoconf to produce a configure script.
+dnl Process this file with autoconf to produce a configure script.
 
 AC_INIT(configure.in)
-AM_INIT_AUTOMAKE(QCADesignerE, 2.2)
+
+dnl Install the program as QCADesignerE, unless --program-suffix says otherwise.
+test "$program_suffix" = NONE && program_suffix=E
+
+dnl The data file paths in the source use the name QCADesigner.
+AM_INIT_AUTOMAKE(QCADesigner, 2.2)
 AM_MAINTAINER_MODE
 
 AC_ISC_POSIX
@@ -122,9 +127,7 @@ src/Makefile
 po/Makefile.in
 docs/Makefile
 pixmaps/Makefile
-QCADesigner.desktop
+QCADesignerE.desktop
 graph_dialog.desktop
-QCADesigner.spec
-QCADesigner-win32.iss
-QCADesigner-win32-gtk.iss
+QCADesignerE-win32.iss
 ])

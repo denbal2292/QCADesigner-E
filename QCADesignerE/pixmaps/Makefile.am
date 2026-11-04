@@ -1,6 +1,19 @@
 pixmapdir = $(datadir)/@PACKAGE@/pixmaps
 
 pixmap_DATA = \
+	QCADesignerE.ico \
+	QCADesignerE.svg \
+	QCADesignerE.win32.ico \
+	QCADesignerE.winxp.ico \
+	QCADesignerE_0_48x48x24a.png \
+	QCADesignerE_1_32x32x24a.png \
+	QCADesignerE_2_16x16x24a.png \
+	QCADesignerE_3_48x48x24.png \
+	QCADesignerE_4_32x32x24.png \
+	QCADesignerE_5_16x16x24.png \
+	QCADesignerE_6_48x48x8.png \
+	QCADesignerE_7_32x32x8.png \
+	QCADesignerE_8_16x16x8.png \
 	QCADesigner.ico \
 	QCADesigner.svg \
 	QCADesigner.win32.ico \
