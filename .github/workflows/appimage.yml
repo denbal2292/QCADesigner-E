@@ -1,0 +1,65 @@
+name: AppImage
+
+on:
+  push:
+    branches: [master]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    # The AppImage only runs on systems with the same or a newer glibc than this.
+    container: ubuntu:22.04
+    steps:
+      - name: Install build requirements
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            build-essential pkg-config libgtk2.0-dev gettext shared-mime-info \
+            git file curl ca-certificates xvfb xauth
+
+      - uses: actions/checkout@v4
+
+      - name: Build
+        run: QCADesignerE/packaging/appimage/build-appimage.sh
+
+      - name: Check that it starts and finds its icons
+        run: |
+          status=0
+          timeout 20 xvfb-run -a ./QCADesignerE-x86_64.AppImage --appimage-extract-and-run \
+            circuits/USE_charac_MAJ_classic.qca > start.log 2>&1 || status=$?
+          cat start.log
+          # 124 means it was still running when timeout stopped it.
+          test "$status" = 124
+          if grep -E "Couldn't find pixmap|Failed to load|CRITICAL" start.log; then
+            exit 1
+          fi
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: QCADesignerE-x86_64.AppImage
+          path: QCADesignerE-x86_64.AppImage
+          if-no-files-found: error
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: QCADesignerE-x86_64.AppImage
+
+      - name: Publish the release
+        run: |
+          gh release create "$GITHUB_REF_NAME" QCADesignerE-x86_64.AppImage \
+            --repo "$GITHUB_REPOSITORY" --generate-notes
+        env:
+          GH_TOKEN: ${{ github.token }}
