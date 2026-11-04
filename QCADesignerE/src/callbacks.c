@@ -1375,7 +1375,7 @@ void on_contents_menu_item_activate(GtkMenuItem * menuitem, gpointer user_data)
   #else
   char *pszBrowser =
     get_external_app (GTK_WINDOW (main_window.main_window), _("Please Select Web Browser"), "browser",
-      "/usr/bin/mozilla", FALSE) ;
+      "/usr/bin/xdg-open", FALSE) ;
   #endif
 
   if (NULL == pszBrowser) return ;
@@ -1386,7 +1386,7 @@ void on_contents_menu_item_activate(GtkMenuItem * menuitem, gpointer user_data)
       G_DIR_SEPARATOR_S, PACKAGE, VERSION, G_DIR_SEPARATOR_S, G_DIR_SEPARATOR_S) ;
   #else
   pszCmdLine = g_strdup_printf ("%s %s%cdoc%cQCADesigner-%s%cmanual%cindex.html", pszBrowser,
-    PACKAGE_DATA_DIR, G_DIR_SEPARATOR, G_DIR_SEPARATOR, VERSION, G_DIR_SEPARATOR, G_DIR_SEPARATOR) ;
+    get_package_data_dir (), G_DIR_SEPARATOR, G_DIR_SEPARATOR, VERSION, G_DIR_SEPARATOR, G_DIR_SEPARATOR) ;
   #endif
 
   RunCmdLineAsync (pszCmdLine, NULL) ;

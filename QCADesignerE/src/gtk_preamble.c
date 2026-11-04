@@ -32,6 +32,7 @@
 #include "qcadstock.h"
 #include "global_consts.h"
 #include "custom_widgets.h"
+#include "generic_utils.h"
 
 #ifdef WIN32
 #ifdef QCAD_NO_CONSOLE
@@ -99,7 +100,12 @@ void gtk_preamble (int *pargc, char ***pargv, char *pszBaseName)
   bindtextdomain (PACKAGE, psz = g_strdup_printf ("%s%s..%sshare%slocale", szMyPath, G_DIR_SEPARATOR_S, G_DIR_SEPARATOR_S, G_DIR_SEPARATOR_S)) ;
   g_free (psz) ;
 #else
-  bindtextdomain (PACKAGE, PACKAGE_LOCALE_DIR);
+  {
+  char *pszLocaleDir = g_build_filename (get_package_data_dir (), "locale", NULL) ;
+
+  bindtextdomain (PACKAGE, pszLocaleDir) ;
+  g_free (pszLocaleDir) ;
+  }
 #endif /* def WIN32 */
   textdomain (PACKAGE);
 #endif
@@ -115,6 +121,14 @@ void gtk_preamble (int *pargc, char ***pargv, char *pszBaseName)
   // -- Pixmaps used by the buttons in the main window -- //
   add_pixmap_directory (PACKAGE_DATA_DIR "/QCADesigner/pixmaps");
   add_pixmap_directory (PACKAGE_SOURCE_DIR "/pixmaps");
+  // Directories added later are searched first. This path must be absolute, because
+  // gtk_icon_source_set_filename rejects relative ones, and get_package_data_dir's is.
+  {
+  char *pszPixmapDir = g_build_filename (get_package_data_dir (), "QCADesigner", "pixmaps", NULL) ;
+
+  add_pixmap_directory (pszPixmapDir) ;
+  g_free (pszPixmapDir) ;
+  }
 #endif /* ifdef WIN32 */
 // Done adding pixmap directories
 

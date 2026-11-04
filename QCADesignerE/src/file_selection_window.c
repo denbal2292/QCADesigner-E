@@ -34,10 +34,13 @@
 #include "fileio_helpers.h"
 #include "custom_widgets.h"
 #include "global_consts.h"
+#include "generic_utils.h"
 
 #define DBG_FSW(s) s
 
-#define QCA_CELL_LIBRARY PACKAGE_DATA_DIR G_DIR_SEPARATOR_S PACKAGE G_DIR_SEPARATOR_S "qca_cell_library"
+#ifndef WIN32
+static char *pszInstalledCellLibrary = NULL ;
+#endif /* ndef WIN32 */
 
 static gboolean filesel_ok_button_activate (GtkWidget *widget, GdkEventButton *ev, gpointer data) ;
 static char *get_default_file_name (GtkFileSelection *file_sel, char *pszFName) ;
@@ -202,7 +205,9 @@ static char *get_default_file_name (GtkFileSelection *file_sel, char *pszFName)
     getenv ("MY_PATH"), G_DIR_SEPARATOR_S, G_DIR_SEPARATOR_S, G_DIR_SEPARATOR_S, PACKAGE, G_DIR_SEPARATOR_S) ;
   pszCellLibrary = szPath ;
 #else
-  pszCellLibrary = QCA_CELL_LIBRARY ;
+  if (NULL == pszInstalledCellLibrary)
+    pszInstalledCellLibrary = g_build_filename (get_package_data_dir (), PACKAGE, "qca_cell_library", NULL) ;
+  pszCellLibrary = pszInstalledCellLibrary ;
 #endif /* def WIN32 */
 
   pszOldFName = g_strdup (gtk_file_selection_get_filename (file_sel)) ;

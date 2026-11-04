@@ -125,6 +125,43 @@ gboolean LineSegmentCanBeSkipped (double dx0, double dy0, double dx1, double dy1
   return (fabs ((dy1 - dy0) / (dx1 - dx0) - (dy2 - dy1) / (dx2 - dx1)) < dMaxSlopeDiff) ;
   }
 
+#ifndef WIN32
+// Returns the directory holding the installed data files. This is the "share" directory
+// next to the program's "bin" directory if the package's files are there, so that the
+// program can be moved after installing it. Otherwise, it is the one chosen by configure.
+const char *get_package_data_dir ()
+  {
+  static char *pszDataDir = NULL ;
+
+  if (NULL == pszDataDir)
+    {
+    char *pszExe = g_file_read_link ("/proc/self/exe", NULL) ;
+
+    if (NULL != pszExe)
+      {
+      char *pszBinDir = g_path_get_dirname (pszExe) ;
+      char *pszPrefix = g_path_get_dirname (pszBinDir) ;
+      char *pszShare = g_build_filename (pszPrefix, "share", NULL) ;
+      char *pszPackage = g_build_filename (pszShare, PACKAGE, NULL) ;
+
+      if (g_file_test (pszPackage, G_FILE_TEST_IS_DIR))
+        pszDataDir = g_strdup (pszShare) ;
+
+      g_free (pszPackage) ;
+      g_free (pszShare) ;
+      g_free (pszPrefix) ;
+      g_free (pszBinDir) ;
+      g_free (pszExe) ;
+      }
+
+    if (NULL == pszDataDir)
+      pszDataDir = g_strdup (PACKAGE_DATA_DIR) ;
+    }
+
+  return pszDataDir ;
+  }
+#endif /* ndef WIN32 */
+
 #ifdef GTK_GUI
 void RunCmdLineAsync (char *pszCmdLine, char *pszTmpFName)
   {
@@ -157,7 +194,16 @@ static gpointer RunCmdLineAsyncThread (gpointer p)
     CloseHandle (pi.hThread) ;
     }
 #else
-  system (prclap->pszCmdLine) ;
+  // Inside an AppImage, other programs must not inherit the settings for its bundled libraries
+  if (NULL != getenv ("APPDIR"))
+    {
+    char *pszCmdLine = g_strdup_printf ("env -u LD_LIBRARY_PATH -u GTK2_RC_FILES -u GDK_PIXBUF_MODULE_FILE -u GTK_IM_MODULE_FILE %s", prclap->pszCmdLine) ;
+
+    system (pszCmdLine) ;
+    g_free (pszCmdLine) ;
+    }
+  else
+    system (prclap->pszCmdLine) ;
 #endif
   g_free (prclap->pszCmdLine) ;
   if (NULL != prclap->pszTmpFName)
