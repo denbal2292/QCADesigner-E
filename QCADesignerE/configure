@@ -2653,7 +2653,7 @@ fi
 
 # Define the identity of the package.
  PACKAGE=QCADesigner
- VERSION=2.3.1
+ VERSION=2.3.2
 
 
 cat >>confdefs.h <<_ACEOF

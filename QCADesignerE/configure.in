@@ -6,7 +6,7 @@ dnl Install the program as QCADesignerE, unless --program-suffix says otherwise.
 test "$program_suffix" = NONE && program_suffix=E
 
 dnl The data file paths in the source use the name QCADesigner.
-AM_INIT_AUTOMAKE(QCADesigner, 2.3.1)
+AM_INIT_AUTOMAKE(QCADesigner, 2.3.2)
 AM_MAINTAINER_MODE
 
 AC_ISC_POSIX
