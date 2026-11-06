@@ -147,16 +147,33 @@ gboolean check_project_file_magic_fp (FILE *pfile, double *pversion)
   return TRUE ;
   }
 
+// Writes the design to a temporary file next to file_name, and only replaces file_name once
+// every write has succeeded. A failed save, such as on a full disk, leaves the old file intact.
 gboolean create_file (gchar *file_name, DESIGN *design)
   {
   FILE *pfile = NULL ;
+  char *pszTemp = g_strdup_printf ("%s.saving", file_name) ;
+  gboolean bOK = FALSE ;
 
-  if (NULL == (pfile = fopen (file_name, "w"))) return FALSE ;
+  if (NULL != (pfile = fopen (pszTemp, "w")))
+    {
+    create_file_fp (pfile, design) ;
+    bOK = !ferror (pfile) ;
+    if (0 != fclose (pfile))
+      bOK = FALSE ;
+#ifdef WIN32
+    // rename does not replace an existing file on Windows
+    if (bOK)
+      remove (file_name) ;
+#endif /* def WIN32 */
+    if (bOK && 0 != rename (pszTemp, file_name))
+      bOK = FALSE ;
+    if (!bOK)
+      remove (pszTemp) ;
+    }
 
-  create_file_fp (pfile, design) ;
-  fclose (pfile) ;
-
-  return TRUE ;
+  g_free (pszTemp) ;
+  return bOK ;
   }
 
 void create_file_fp (FILE *pfile, DESIGN *design)
