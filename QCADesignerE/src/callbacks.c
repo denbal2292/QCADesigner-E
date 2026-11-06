@@ -1019,6 +1019,15 @@ void on_load_output_from_file_menu_item_activate(GtkMenuItem *menuitem, gpointer
     // Since graph_dialog will destroy the contents of sim_output, we can now free the wrapper shallowly
     g_free (sim_output) ;
     }
+  else
+    {
+    GtkWidget *msg = NULL ;
+
+    gtk_dialog_run (GTK_DIALOG (msg = gtk_message_dialog_new (GTK_WINDOW (main_window.main_window), GTK_DIALOG_MODAL,
+      GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE, _("Failed to open simulation data file %s !\n"), pszFName))) ;
+    gtk_widget_hide (msg) ;
+    gtk_widget_destroy (msg) ;
+    }
   }
 
 void on_save_output_to_file_menu_item_activate(GtkMenuItem *menuitem, gpointer user_data)

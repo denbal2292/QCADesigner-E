@@ -231,7 +231,11 @@ VTL_RESULT VectorTable_load (VectorTable *pvt)
   EXP_ARRAY *vector = NULL ;
 
   if (NULL == pfile) return VTL_FILE_FAILED ; 
-  if (!CheckMagic (pfile)) return VTL_MAGIC_FAILED ;
+  if (!CheckMagic (pfile))
+    {
+    fclose (pfile) ;
+    return VTL_MAGIC_FAILED ;
+    }
 
   GetVTSizes (pfile, &icInputs, &icVectors) ;
 
@@ -329,7 +333,8 @@ static gboolean CheckMagic (FILE *pfile)
 
   fseek (pfile, 0, SEEK_SET) ;
   psz = ReadLine (pfile, '#', FALSE) ;
-  bRet = !strcmp (psz, pszMagicCookie) ;
+  // An empty file has no first line
+  bRet = (NULL != psz && !strcmp (psz, pszMagicCookie)) ;
   g_free (psz) ;
   fseek (pfile, cb, SEEK_SET) ;
 

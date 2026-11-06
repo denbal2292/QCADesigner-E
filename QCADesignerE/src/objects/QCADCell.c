@@ -149,6 +149,9 @@ GdkColor clrYellow = {0, 0xFFFF, 0xFFFF, 0x0000} ;
 GdkColor clrBlue   = {0, 0x0000, 0x0000, 0xFFFF} ;
 GdkColor clrPurple = {0, 0x8FFF, 0x0000, 0x8FFF} ;
 
+// More than any real cell has, but small enough that a damaged file cannot ask for huge allocations
+#define MAX_DOTS_PER_CELL 64
+
 static GdkColor clrClock[4] =
   {
   {0, 0x0000, 0xFFFF, 0x0000},
@@ -1157,8 +1160,11 @@ static gboolean unserialize (QCADDesignObject *obj, FILE *fp)
       else
       if (!strcmp (pszLine, "number_of_dots"))
         {
-        cell->number_of_dots = atoi (pszValue) ;
-        cell->cell_dots = g_malloc0 (cell->number_of_dots * sizeof (QCADCellDot)) ;
+        // A damaged file can give any count, so only accept a sensible one, once
+        if (NULL != cell->cell_dots || (cell->number_of_dots = atoi (pszValue)) <= 0 || cell->number_of_dots > MAX_DOTS_PER_CELL)
+          bStopReading = TRUE ;
+        else
+          cell->cell_dots = g_malloc0 (cell->number_of_dots * sizeof (QCADCellDot)) ;
         }
       else
       if (!strcmp (pszLine, "label"))
@@ -1168,6 +1174,10 @@ static gboolean unserialize (QCADDesignObject *obj, FILE *fp)
     g_free (pszLine) ;
     g_free (ReadLine (fp, '\0', FALSE)) ;
     }
+
+  // The clock indexes arrays of 4, and every dot the cell declares must have been read
+  if (cell->cell_options.clock < 0 || cell->cell_options.clock > 3 || current_dot != cell->number_of_dots)
+    bStopReading = TRUE ;
 
   return (bParentInit && !bStopReading) ;
   }

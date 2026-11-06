@@ -59,7 +59,11 @@ static void unserialize_trace_data (FILE *pfile, struct TRACEDATA *trace, int ic
 static coherence_OP *open_coherence_options_file_fp (FILE *fp) ;
 static coherence_energy_OP *open_coherence_energy_options_file_fp (FILE *fp) ;
 static bistable_OP *open_bistable_options_file_fp (FILE *fp) ;
-static void build_io_tables (simulation_data *sim_data, BUS_LAYOUT *bus_layout) ;
+// The most sample values a results file may hold, about 400 MB
+#define MAX_LOADED_SIM_VALUES 50000000
+
+static gboolean build_io_tables (simulation_data *sim_data, BUS_LAYOUT *bus_layout) ;
+static gboolean sim_data_sizes_valid (simulation_data *sim_data) ;
 
 static double qcadesigner_version = 2.0 ;
 
@@ -116,7 +120,9 @@ gboolean open_project_file_fp (FILE *pfile, DESIGN **pdesign)
 
   bRet = design_unserialize (pdesign, pfile) ;
 
-  (*pdesign)->lstCurrentLayer = (*pdesign)->lstLastLayer ;
+  // design_unserialize leaves no design when the file is incomplete
+  if (bRet && NULL != (*pdesign))
+    (*pdesign)->lstCurrentLayer = (*pdesign)->lstLastLayer ;
 
   return bRet ;
   }
@@ -670,18 +676,17 @@ SIMULATION_OUTPUT *open_simulation_output_file_fp (FILE *pfile)
     g_free (ReadLine (pfile, '\0', FALSE)) ;
     }
 
-  if (NULL == sim_output->sim_data)
-    {
-    if (NULL != sim_output->bus_layout)
-      design_bus_layout_free (sim_output->bus_layout) ;
-    g_free (sim_output) ;
-    sim_output = NULL ;
-    }
-
   if (NULL == sim_output->bus_layout)
     sim_output->bus_layout = design_bus_layout_new () ;
-  if (NULL != sim_output->bus_layout)
-    build_io_tables (sim_output->sim_data, sim_output->bus_layout) ;
+
+  // Refuse the file rather than return results that would crash when shown or saved
+  if (NULL == sim_output->sim_data || !build_io_tables (sim_output->sim_data, sim_output->bus_layout))
+    {
+    design_bus_layout_free (sim_output->bus_layout) ;
+    simulation_data_destroy (sim_output->sim_data) ;
+    g_free (sim_output) ;
+    return NULL ;
+    }
 
   return sim_output ;
   }
@@ -712,6 +717,16 @@ simulation_data *simulation_data_unserialize (FILE *pfile)
     tokenize_line (pszLine, strlen (pszLine), &pszValue, '=') ;
     set_progress_bar_fraction (get_file_percent (pfile)) ;
 
+    // The counts size the arrays, so they cannot change once those exist
+    if ((!strcmp (pszLine, "number_samples") || !strcmp (pszLine, "number_of_traces")) &&
+        (NULL != sim_data->trace || NULL != sim_data->clock_data))
+      {
+      g_free (pszLine) ;
+      sim_data->number_of_traces = 0 ;
+      simulation_data_destroy (sim_data) ;
+      return NULL ;
+      }
+    else
     if (!strcmp (pszLine, "number_samples"))
       sim_data->number_samples = atoi (pszValue) ;
     else
@@ -720,8 +735,8 @@ simulation_data *simulation_data_unserialize (FILE *pfile)
     else
     if (!strncmp (pszLine, "[TRACES]", 8))
       {
-      // By now, we must have read the number of traces and samples.
-      if (-1 == sim_data->number_of_traces || -1 == sim_data->number_samples)
+      // By now, we must have read sensible numbers of traces and samples, and only one list of traces
+      if (NULL != sim_data->trace || !sim_data_sizes_valid (sim_data))
         {
         g_free (pszLine) ;
         simulation_data_destroy (sim_data) ;
@@ -737,7 +752,7 @@ simulation_data *simulation_data_unserialize (FILE *pfile)
     else
     if (!strncmp (pszLine, "[CLOCKS]", 8))
       {
-      if (-1 == sim_data->number_samples)
+      if (NULL != sim_data->clock_data || !sim_data_sizes_valid (sim_data))
         {
         g_free (pszLine) ;
         simulation_data_destroy (sim_data) ;
@@ -753,7 +768,25 @@ simulation_data *simulation_data_unserialize (FILE *pfile)
     g_free (pszLine) ;
     g_free (ReadLine (pfile, '\0', FALSE)) ;
     }
+
+  // Every saved result has its traces and clocks
+  if (!sim_data_sizes_valid (sim_data) || (sim_data->number_of_traces > 0 && NULL == sim_data->trace) || NULL == sim_data->clock_data)
+    {
+    if (NULL == sim_data->trace)
+      sim_data->number_of_traces = 0 ;
+    return simulation_data_destroy (sim_data) ;
+    }
   return sim_data ;
+  }
+
+// Whether the counts read from a results file are usable. Real results have a few thousand
+// samples per trace, but a damaged file can claim any number.
+static gboolean sim_data_sizes_valid (simulation_data *sim_data)
+  {
+  return
+    sim_data->number_samples > 0 && sim_data->number_samples <= MAX_LOADED_SIM_VALUES &&
+    sim_data->number_of_traces >= 0 &&
+    ((double)sim_data->number_of_traces + 4.0) * sim_data->number_samples <= MAX_LOADED_SIM_VALUES ;
   }
 
 coherence_OP *open_coherence_options_file (char *pszFName)
@@ -1086,16 +1119,17 @@ static void unserialize_trace_data (FILE *pfile, struct TRACEDATA *trace, int ic
     }
   }
 
-static void build_io_tables (simulation_data *sim_data, BUS_LAYOUT *bus_layout)
+// Returns FALSE if a bus refers to a trace the results do not have
+static gboolean build_io_tables (simulation_data *sim_data, BUS_LAYOUT *bus_layout)
   {
-  int Nix, Nix1 ;
+  int Nix, Nix1, idx ;
   EXP_ARRAY *cell_list = NULL ;
   BUS_LAYOUT_CELL blcell = {NULL, FALSE} ;
   BUS *bus = NULL ;
 
-  if (NULL == bus_layout) return ;
+  if (NULL == bus_layout) return FALSE ;
 
-  if (NULL == sim_data) return ;
+  if (NULL == sim_data) return FALSE ;
 
   for (Nix = 0 ; Nix < sim_data->number_of_traces ; Nix++)
     {
@@ -1107,11 +1141,13 @@ static void build_io_tables (simulation_data *sim_data, BUS_LAYOUT *bus_layout)
   for (Nix = 0 ; Nix < bus_layout->buses->icUsed ; Nix++)
     {
     bus = &(exp_array_index_1d (bus_layout->buses, BUS, Nix)) ;
+    cell_list = (QCAD_CELL_INPUT == bus->bus_function) ? bus_layout->inputs : bus_layout->outputs ;
     for (Nix1 = 0 ; Nix1 < bus->cell_indices->icUsed ; Nix1++)
-      exp_array_index_1d (
-        (QCAD_CELL_INPUT == bus->bus_function) ?
-          bus_layout->inputs : bus_layout->outputs,
-        BUS_LAYOUT_CELL,
-        exp_array_index_1d (bus->cell_indices, int, Nix1)).bIsInBus = TRUE ;
+      {
+      if ((idx = exp_array_index_1d (bus->cell_indices, int, Nix1)) < 0 || idx >= cell_list->icUsed)
+        return FALSE ;
+      exp_array_index_1d (cell_list, BUS_LAYOUT_CELL, idx).bIsInBus = TRUE ;
+      }
     }
+  return TRUE ;
   }

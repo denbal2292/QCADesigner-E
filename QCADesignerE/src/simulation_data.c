@@ -58,11 +58,12 @@ simulation_data *simulation_data_destroy (simulation_data *sim_data)
 
   if (NULL == sim_data) return NULL;
 
-  for (i = 0; i < sim_data->number_of_traces; i++)
-    {
-    g_free (sim_data->trace[i].data);
-    g_free (sim_data->trace[i].data_labels);
-    }
+  if (NULL != sim_data->trace)
+    for (i = 0; i < sim_data->number_of_traces; i++)
+      {
+      g_free (sim_data->trace[i].data);
+      g_free (sim_data->trace[i].data_labels);
+      }
 
   g_free (sim_data->trace);
 

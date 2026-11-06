@@ -265,6 +265,10 @@ void tokenize_line (char *pszLine, int length, char **pszValue, char delim)
       (*pszValue) = &(pszLine[idx + 1]) ;
       return ;
       }
+
+  // No delimiter: the value is empty. Leaving it unchanged would leave it pointing
+  // into the previous line, which the caller has usually freed.
+  (*pszValue) = &(pszLine[length]) ;
   }
 
 void tokenize_line_type (char *pszLine, int length, char **pszValue, char delim)

@@ -1491,7 +1491,7 @@ static void design_rebuild_io_lists (DESIGN *design)
   for (llItrLayers = design->lstLastLayer ; llItrLayers != NULL ; llItrLayers = llItrLayers->prev)
     if (LAYER_TYPE_CELLS == (QCAD_LAYER (llItrLayers->data))->type)
       for (llItrCells = g_list_last ((QCAD_LAYER (llItrLayers->data))->lstObjs) ; llItrCells != NULL ; llItrCells = llItrCells->prev)
-        if (NULL != llItrCells->data)
+        if (NULL != llItrCells->data && QCAD_IS_CELL (llItrCells->data))
           {
           if (QCAD_CELL_INPUT  == QCAD_CELL (llItrCells->data)->cell_function ||
 	            QCAD_CELL_OUTPUT == QCAD_CELL (llItrCells->data)->cell_function)
@@ -1596,6 +1596,9 @@ BUS_LAYOUT *design_bus_layout_free (BUS_LAYOUT *bus_layout)
   {
   BUS *bus = NULL ;
   int Nix ;
+
+  // A design whose file had no bus layout section has none to free
+  if (NULL == bus_layout) return NULL ;
 
   bus_layout->inputs = exp_array_free (bus_layout->inputs) ;
   bus_layout->outputs = exp_array_free (bus_layout->outputs) ;
