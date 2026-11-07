@@ -29,6 +29,7 @@
 //////////////////////////////////////////////////////////
 
 #include <stdio.h>
+#include <glib/gstdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include "vector_table.h"
@@ -177,7 +178,7 @@ gboolean VectorTable_save (VectorTable *pvt)
 
   if (NULL == pvt->pszFName) return FALSE ;
 
-  pfile = fopen (pvt->pszFName, "w") ;
+  pfile = g_fopen (pvt->pszFName, "w") ;
 
   DBG_VT (fprintf (stderr, "Entering VectorTable_save\n")) ;
 
@@ -226,7 +227,7 @@ gboolean VectorTable_save (VectorTable *pvt)
 VTL_RESULT VectorTable_load (VectorTable *pvt)
   {
   int icInputs = 0, icVectors = 0, Nix ;
-  FILE *pfile = fopen (pvt->pszFName, "r") ;
+  FILE *pfile = g_fopen (pvt->pszFName, "r") ;
   VTL_RESULT ret = VTL_OK ;
   EXP_ARRAY *vector = NULL ;
 

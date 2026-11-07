@@ -44,9 +44,7 @@ void RunCmdLineAsync (char *pszCmdLine, char *pszTmpFName) ;
 #endif /* def GTK_GUI */
 double qcad_strtod (const char *psz) ;
 char *get_enum_string_from_value (GType enum_type, int value) ;
-#ifndef WIN32
 const char *get_package_data_dir () ;
-#endif /* ndef WIN32 */
 int get_enum_value_from_string (GType enum_type, char *psz) ;
 
 #endif /* _GENERIC_UTILS_H_ */

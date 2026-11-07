@@ -34,6 +34,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <gtk/gtk.h>
+#include <glib/gstdio.h>
 #include <errno.h>
 #include "global_consts.h"
 #include "recent_files.h"
@@ -69,7 +70,7 @@ void fill_recent_files_menu (GtkWidget *menu, GtkSignalFunc pfn, gpointer data)
   if (NULL != ppszRecentFiles)
     return ;
 
-  if (NULL == (pfile = fopen (pszRecentFName, "r")))
+  if (NULL == (pfile = g_fopen (pszRecentFName, "r")))
     return ;
 
   while (NULL != (pszFName = ReadLine (pfile, '\0', FALSE)))
@@ -158,7 +159,7 @@ static void SaveRecentFiles (char **ppszRecentFiles, int icRecentFiles)
   FILE *pfile ;
   int Nix ;
 
-  pfile = fopen (pszRecentFName, "w") ;
+  pfile = g_fopen (pszRecentFName, "w") ;
 
   for (Nix = 0 ; Nix < icRecentFiles ; Nix++)
     fprintf (pfile, "%s\n", ppszRecentFiles[Nix]) ;

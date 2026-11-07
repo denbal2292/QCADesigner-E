@@ -29,6 +29,7 @@
 //////////////////////////////////////////////////////////
 
 #include <stdio.h>
+#include <glib/gstdio.h>
 #include <math.h>
 #include "print.h"
 
@@ -37,7 +38,7 @@ FILE *OpenPrintStream (print_OP *pPO)
   if (NULL == pPO) return NULL ;
 
   if (pPO->bPrintFile)
-    return fopen (pPO->pszPrintString, "w") ;
+    return g_fopen (pPO->pszPrintString, "w") ;
   else
     return popen (pPO->pszPrintString, "w") ;
   }

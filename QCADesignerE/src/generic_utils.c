@@ -33,6 +33,7 @@
   #include <unistd.h>
 #endif /* ndef WIN32 */
 #include <glib.h>
+#include <glib/gstdio.h>
 #include "exp_array.h"
 #include "generic_utils.h"
 #include "global_consts.h"
@@ -146,7 +147,6 @@ double qcad_strtod (const char *psz)
   return dValue ;
   }
 
-#ifndef WIN32
 // Returns the directory holding the installed data files. This is the "share" directory
 // next to the program's "bin" directory if the package's files are there, so that the
 // program can be moved after installing it. Otherwise, it is the one chosen by configure.
@@ -156,6 +156,16 @@ const char *get_package_data_dir ()
 
   if (NULL == pszDataDir)
     {
+#ifdef WIN32
+    // The installation directory is the one containing "bin", returned in UTF-8
+    char *pszInstall = g_win32_get_package_installation_directory_of_module (NULL) ;
+
+    if (NULL != pszInstall)
+      {
+      pszDataDir = g_build_filename (pszInstall, "share", NULL) ;
+      g_free (pszInstall) ;
+      }
+#else
     char *pszExe = g_file_read_link ("/proc/self/exe", NULL) ;
 
     if (NULL != pszExe)
@@ -174,6 +184,7 @@ const char *get_package_data_dir ()
       g_free (pszBinDir) ;
       g_free (pszExe) ;
       }
+#endif /* def WIN32 */
 
     if (NULL == pszDataDir)
       pszDataDir = g_strdup (PACKAGE_DATA_DIR) ;
@@ -181,7 +192,6 @@ const char *get_package_data_dir ()
 
   return pszDataDir ;
   }
-#endif /* ndef WIN32 */
 
 #ifdef GTK_GUI
 void RunCmdLineAsync (char *pszCmdLine, char *pszTmpFName)
@@ -200,20 +210,23 @@ static gpointer RunCmdLineAsyncThread (gpointer p)
   {
   RUN_CMD_LINE_ASYNC_THREAD_PARAMS *prclap = (RUN_CMD_LINE_ASYNC_THREAD_PARAMS *)p ;
 #ifdef WIN32
-  STARTUPINFO si ;
+  STARTUPINFOW si ;
   PROCESS_INFORMATION pi ;
+  // The command line is UTF-8, so start the program through the Unicode API
+  wchar_t *pwszCmdLine = (wchar_t *)g_utf8_to_utf16 (prclap->pszCmdLine, -1, NULL, NULL, NULL) ;
 
   memset (&si, 0, sizeof (si)) ;
   memset (&pi, 0, sizeof (pi)) ;
-  si.cb = sizeof (STARTUPINFO) ;
+  si.cb = sizeof (STARTUPINFOW) ;
 
-  if (CreateProcess (NULL, prclap->pszCmdLine, NULL, NULL, FALSE, DETACHED_PROCESS,
+  if (NULL != pwszCmdLine && CreateProcessW (NULL, pwszCmdLine, NULL, NULL, FALSE, DETACHED_PROCESS,
     NULL, NULL, &si, &pi))
     {
     WaitForSingleObject (pi.hProcess, INFINITE) ;
     CloseHandle (pi.hProcess) ;
     CloseHandle (pi.hThread) ;
     }
+  g_free (pwszCmdLine) ;
 #else
   // Inside an AppImage, other programs must not inherit the settings for its bundled libraries
   if (NULL != getenv ("APPDIR"))
@@ -229,11 +242,7 @@ static gpointer RunCmdLineAsyncThread (gpointer p)
   g_free (prclap->pszCmdLine) ;
   if (NULL != prclap->pszTmpFName)
     {
-#ifdef WIN32
-    DeleteFile (prclap->pszTmpFName) ;
-#else
-    unlink (prclap->pszTmpFName) ;
-#endif /* def WIN32 */
+    g_unlink (prclap->pszTmpFName) ;
     g_free (prclap->pszTmpFName) ;
     }
   g_free (prclap) ;

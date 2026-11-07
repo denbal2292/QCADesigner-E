@@ -27,6 +27,7 @@
 //////////////////////////////////////////////////////////
 #include <gtk/gtk.h>
 #include <stdio.h>
+#include <glib/gstdio.h>
 #include <string.h>
 
 #include "support.h"
@@ -38,9 +39,7 @@
 
 #define DBG_FSW(s) s
 
-#ifndef WIN32
 static char *pszInstalledCellLibrary = NULL ;
-#endif /* ndef WIN32 */
 
 static gboolean filesel_ok_button_activate (GtkWidget *widget, GdkEventButton *ev, gpointer data) ;
 static char *get_default_file_name (GtkFileSelection *file_sel, char *pszFName) ;
@@ -123,12 +122,9 @@ gchar *get_external_app (GtkWindow *parent, char *pszWinTitle, char *pszCfgFName
   char *pszLine = NULL ;
   FILE *pfile = NULL ;
   int Nix, ic ;
-#ifdef WIN32
-  char szBuf[PATH_LENGTH] = "" ;
-#endif
 
   pszUserFName = CreateUserFName (pszCfgFName) ;
-  if (NULL == (pfile = fopen (pszUserFName, "r")))
+  if (NULL == (pfile = g_fopen (pszUserFName, "r")))
     pszRet = get_file_name_from_user (parent, pszWinTitle, pszDefaultContents, FALSE) ;
   else
     {
@@ -176,16 +172,9 @@ gchar *get_external_app (GtkWindow *parent, char *pszWinTitle, char *pszCfgFName
       break ;
       }
 
-#ifdef WIN32
-  // In Windoze, we need to perform the extra step of grabbing
-  // the DOS-style path corresponding to the previewer path
-  GetShortPathName (pszRet, szBuf, PATH_LENGTH) ;
-  g_free (pszRet) ;
-  pszRet = g_strdup_printf ("%s", szBuf) ;
-#endif
 
   /* Save the previewer to the config file */
-  if (NULL != (pfile = fopen (pszUserFName, "w")))
+  if (NULL != (pfile = g_fopen (pszUserFName, "w")))
     {
     fprintf (pfile, "%s\n", pszRet) ;
     fclose (pfile) ;
@@ -199,16 +188,9 @@ static char *get_default_file_name (GtkFileSelection *file_sel, char *pszFName)
   gboolean bHaveCellLib = FALSE ;
   char *pszCellLibrary = NULL ;
   char *pszOldFName = NULL ;
-#ifdef WIN32
-  char szPath[PATH_LENGTH] = "" ;
-  g_snprintf (szPath, PATH_LENGTH, "%s%s..%sshare%s%s%sqca_cell_library", 
-    getenv ("MY_PATH"), G_DIR_SEPARATOR_S, G_DIR_SEPARATOR_S, G_DIR_SEPARATOR_S, PACKAGE, G_DIR_SEPARATOR_S) ;
-  pszCellLibrary = szPath ;
-#else
   if (NULL == pszInstalledCellLibrary)
     pszInstalledCellLibrary = g_build_filename (get_package_data_dir (), PACKAGE, "qca_cell_library", NULL) ;
   pszCellLibrary = pszInstalledCellLibrary ;
-#endif /* def WIN32 */
 
   pszOldFName = g_strdup (gtk_file_selection_get_filename (file_sel)) ;
 

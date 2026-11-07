@@ -29,6 +29,7 @@
 #  include <config.h>
 #endif
 #include <gtk/gtk.h>
+#include <glib/gstdio.h>
 #include <stdlib.h>
 #include <string.h>
 #ifndef WIN32
@@ -818,11 +819,7 @@ void file_operations (GtkWidget *widget, gpointer user_data)
       }
     else
       // Get rid of a bad autosave file
-#ifdef WIN32
-    DeleteFile (pszFName) ;
-#else
-    unlink (pszFName) ;
-#endif /* def WIN32 */
+    g_unlink (pszFName) ;
     g_free (pszFName) ;
     return ;
     }
@@ -878,11 +875,7 @@ void file_operations (GtkWidget *widget, gpointer user_data)
               fFileOp = FILEOP_AUTOLOAD ;
             else
               {
-#ifdef WIN32
-              DeleteFile (pszAutoFName) ;
-#else
-              unlink (pszAutoFName) ;
-#endif /* def WIN32 */
+              g_unlink (pszAutoFName) ;
               g_free (pszAutoFName) ;
               pszAutoFName = NULL ;
               }
@@ -942,11 +935,7 @@ void file_operations (GtkWidget *widget, gpointer user_data)
     else // !bLoadTheFile
     if (NULL != pszFName)
       // We have an autosave file, but the user doesn't want it, so we get rid of it
-#ifdef WIN32
-      DeleteFile (pszFName) ;
-#else
-      unlink (pszFName) ;
-#endif /* def WIN32 */
+      g_unlink (pszFName) ;
     return ;
     }
   else
@@ -1376,27 +1365,27 @@ void on_show_simulation_results_menu_item_activate(GtkMenuItem * menuitem, gpoin
 
 void on_contents_menu_item_activate(GtkMenuItem * menuitem, gpointer user_data)
   {
-  char *pszCmdLine = NULL ;
-  #ifdef WIN32
-  char *pszBrowser =
-    get_external_app (GTK_WINDOW (main_window.main_window), _("Please Select Web Browser"), "browser",
-      "C:\\Program Files\\Internet Explorer\\iexplore.exe", FALSE) ;
-  #else
-  char *pszBrowser =
+  char *pszCmdLine = NULL, *pszBrowser = NULL ;
+#ifdef WIN32
+  // Let Windows open the manual in the user's own browser
+  char *pszManual = g_build_filename (get_package_data_dir (), "doc", "QCADesigner-" VERSION, "manual", "index.html", NULL) ;
+  wchar_t *pwszManual = (wchar_t *)g_utf8_to_utf16 (pszManual, -1, NULL, NULL, NULL) ;
+
+  if (NULL != pwszManual)
+    ShellExecuteW (NULL, L"open", pwszManual, NULL, NULL, SW_SHOWNORMAL) ;
+  g_free (pwszManual) ;
+  g_free (pszManual) ;
+  return ;
+#endif /* def WIN32 */
+
+  pszBrowser =
     get_external_app (GTK_WINDOW (main_window.main_window), _("Please Select Web Browser"), "browser",
       "/usr/bin/xdg-open", FALSE) ;
-  #endif
 
   if (NULL == pszBrowser) return ;
 
-  #ifdef WIN32
-  pszCmdLine = g_strdup_printf ("%s file://%s%s..%sshare%sdoc%s%s-%s%smanual%sindex.html",
-    pszBrowser, getenv ("MY_PATH"), G_DIR_SEPARATOR_S, G_DIR_SEPARATOR_S, G_DIR_SEPARATOR_S, 
-      G_DIR_SEPARATOR_S, PACKAGE, VERSION, G_DIR_SEPARATOR_S, G_DIR_SEPARATOR_S) ;
-  #else
-  pszCmdLine = g_strdup_printf ("%s %s%cdoc%cQCADesigner-%s%cmanual%cindex.html", pszBrowser,
+  pszCmdLine = g_strdup_printf ("%s \"%s%cdoc%cQCADesigner-%s%cmanual%cindex.html\"", pszBrowser,
     get_package_data_dir (), G_DIR_SEPARATOR, G_DIR_SEPARATOR, VERSION, G_DIR_SEPARATOR, G_DIR_SEPARATOR) ;
-  #endif
 
   RunCmdLineAsync (pszCmdLine, NULL) ;
 
@@ -1818,11 +1807,7 @@ static gboolean SaveDirtyUI (GtkWindow *parent, char *szMsg)
         CreateUserFName ("autosave.qca") :
         g_strdup_printf ("%s~", project_options.pszCurrentFName) ;
 
-#ifdef WIN32
-      DeleteFile (pszAutoFName) ;
-#else
-      unlink (pszAutoFName) ;
-#endif /* def WIN32 */
+      g_unlink (pszAutoFName) ;
 
       g_free (pszAutoFName) ;
 
@@ -1862,11 +1847,7 @@ static gboolean DoSave (GtkWindow *parent, int fFileOp)
     {
     char *pszTitle = NULL ;
     project_options.bDesignAltered = FALSE ;
-#ifdef WIN32
-    DeleteFile (pszAutoFName) ;
-#else
-    unlink (pszAutoFName) ;
-#endif /* def WIN32 */
+    g_unlink (pszAutoFName) ;
 
     gtk_window_set_title (parent, pszTitle = g_strdup_printf ("%s - %s", base_name (pszFName), MAIN_WND_BASE_TITLE)) ;
     g_free (pszTitle) ;

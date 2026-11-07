@@ -35,6 +35,7 @@
 
 #include <glib.h>
 #include <stdio.h>
+#include <glib/gstdio.h>
 #include <string.h>
 #include <limits.h>
 #include <stdlib.h>
@@ -73,13 +74,13 @@ FILE *file_open_and_buffer (char *pszFName)
   BUFFER_INFO *pbi = NULL ;
   int file_size = 0 ;
 
-  if (NULL == (pfile = fopen (pszFName, "r"))) return NULL ;
+  if (NULL == (pfile = g_fopen (pszFName, "r"))) return NULL ;
 
   fseek (pfile, 0, SEEK_END) ;
   file_size = ftell (pfile) ;
   fclose (pfile) ;
 
-  if (NULL == (pfile = fopen (pszFName, "r"))) return NULL ;
+  if (NULL == (pfile = g_fopen (pszFName, "r"))) return NULL ;
 
   if (NULL == hash_table)
     if (NULL == (hash_table = g_hash_table_new (NULL, NULL)))
@@ -241,14 +242,10 @@ char *base_name (char *pszFile)
 
 char *CreateUserFName (char *pszBaseName)
   {
-  char *pszHome = getenv ("HOME"), *psz = NULL, *pszRet = NULL ;
-  psz = g_strdup_printf ("%s%s.QCADesigner", pszHome,
-    G_DIR_SEPARATOR == pszHome[strlen (pszHome) - 1] ? "" : G_DIR_SEPARATOR_S) ;
-#ifndef WIN32
-  mkdir (psz, 07777) ;
-#else
-  mkdir (psz) ;
-#endif
+  char *psz = NULL, *pszRet = NULL ;
+  // g_get_home_dir gives UTF-8 on Windows, and does not depend on HOME being set
+  psz = g_build_filename (g_get_home_dir (), ".QCADesigner", NULL) ;
+  g_mkdir_with_parents (psz, 0755) ;
   pszRet = g_strdup_printf ("%s%c%s", psz, G_DIR_SEPARATOR, pszBaseName) ;
   g_free (psz) ;
   return pszRet ;
@@ -298,43 +295,15 @@ int file_age_compare (char *pszFName1, char *pszFName2)
 
 char *absolute_path (char *pszFName)
   {
-#ifdef WIN32
-  int icNeeded = 0 ;
-  char *pszFull = NULL ;
-  char *pszShort = NULL ;
-  char *pszFile = NULL ;
-#else /* ndef WIN32 */
+#ifndef WIN32
   char szRealPath[PATH_MAX] = "" ;
 #endif
 
   if (NULL == pszFName) return NULL ;
 
 #ifdef WIN32
-  pszFull = g_malloc (1) ;
-  pszFull[0] = 0 ;
-  if (0 == (icNeeded = GetFullPathName (pszFName, 0, pszFull, &pszFile)))
-    {
-    g_free (pszFull) ;
-    return g_strdup (pszFName) ;
-    }
-  pszFull = g_realloc (pszFull, icNeeded * sizeof (TCHAR)) ;
-  pszFull[0] = 0 ;
-  GetFullPathName (pszFName,icNeeded, pszFull, &pszFile) ;
-
-  pszShort = g_malloc (1) ;
-  pszShort[0] = 0 ;
-  if (0 == (icNeeded = GetShortPathName (pszFull, pszShort, 0)))
-    {
-    g_free (pszFull) ;
-    g_free (pszShort) ;
-    return g_strdup (pszFName) ;
-    }
-  pszShort = g_realloc (pszShort, icNeeded * sizeof (TCHAR)) ;
-  pszShort[0] = 0 ;
-  GetShortPathName (pszFull, pszShort, icNeeded) ;
-
-  g_free (pszFull) ;
-  return pszShort ;
+  // Works in UTF-8, like the rest of GLib on Windows
+  return g_canonicalize_filename (pszFName, NULL) ;
 #else /* ndef WIN32 */
   if (NULL != realpath (pszFName, szRealPath))
     return g_strdup (szRealPath) ;

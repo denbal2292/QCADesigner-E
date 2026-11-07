@@ -38,6 +38,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <gtk/gtk.h>
+#include <glib/gstdio.h>
 #include "file_selection_window.h"
 #include "print.h"
 #include "print_preview.h"
@@ -55,12 +56,9 @@ void do_print_preview (print_OP *ppo, GtkWindow *parent, void *data, PrintFuncti
   FILE *pfile = NULL ;
   int ic = 0, Nix, fd = -1 ;
   char *pszCfgFile = NULL, *pszPreviewer = NULL, *pszFromFile = NULL, *pszFName = NULL, *psz = NULL ;
-#ifdef WIN32
-  char szBuf[MAX_PATH] = "" ;
-#endif
   
   pszCfgFile = CreateUserFName ("previewer") ;
-  if (NULL == (pfile = fopen (pszCfgFile, "r")))
+  if (NULL == (pfile = g_fopen (pszCfgFile, "r")))
     pszPreviewer = get_file_name_from_user (parent, pszWinTitle, "", FALSE) ;
   else
     {
@@ -118,19 +116,12 @@ void do_print_preview (print_OP *ppo, GtkWindow *parent, void *data, PrintFuncti
       pszPreviewer[Nix] = 0 ;
 
   // Save the previewer to the config file
-  if (NULL != (pfile = fopen (pszCfgFile, "w")))
+  if (NULL != (pfile = g_fopen (pszCfgFile, "w")))
     {
     fprintf (pfile, "%s\n", pszPreviewer) ;
     fclose (pfile) ;
     }
 
-#ifdef WIN32
-  // In Windoze, we need to perform the extra step of grabbing
-  // the DOS-style path corresponding to the previewer path   
-  GetShortPathName (pszPreviewer, szBuf, MAX_PATH) ;
-  g_free (pszPreviewer) ;
-  pszPreviewer = g_strdup_printf ("%s", szBuf) ;
-#endif
 
 // At this point, we have the command line for the previewer.
 // Now, let's concentrate on the temporary file name for the preview.   
@@ -138,15 +129,9 @@ void do_print_preview (print_OP *ppo, GtkWindow *parent, void *data, PrintFuncti
   ppo->pszPrintString = CreateUserFName ("previewXXXXXX") ;
 #ifdef WIN32
   mktemp (ppo->pszPrintString) ;
-  pfile = fopen (ppo->pszPrintString, "w") ;
+  pfile = g_fopen (ppo->pszPrintString, "w") ;
   fd = (NULL == pfile ? -1 : -2) ;
   if (NULL != pfile) fclose (pfile) ;
-
-  // In Windoze, we need to perform the extra step of grabbing
-  // the DOS-style path corresponding to the preview file name   
-  GetShortPathName (ppo->pszPrintString, szBuf, MAX_PATH) ;
-  g_free (ppo->pszPrintString) ;
-  ppo->pszPrintString = g_strdup_printf ("%s", szBuf) ;
 #else
   fd = mkstemp (ppo->pszPrintString) ;
 #endif /* WIN32 */
@@ -177,7 +162,8 @@ void do_print_preview (print_OP *ppo, GtkWindow *parent, void *data, PrintFuncti
   ppo->pszPrintString = pszPrintString ;
   ppo->bPrintFile = bPrintFile ;
 
-  psz = g_strdup_printf ("%s %s", pszPreviewer, pszFName) ;
+  // Quoted, because either path can contain spaces
+  psz = g_strdup_printf ("\"%s\" \"%s\"", pszPreviewer, pszFName) ;
   g_free (pszPreviewer) ;
   pszPreviewer = psz ;
 

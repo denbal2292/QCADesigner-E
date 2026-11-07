@@ -37,6 +37,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <stdio.h>
+#include <glib/gstdio.h>
 #include <string.h>
 #include <time.h>
 
@@ -183,15 +184,18 @@ simulation_data *run_coherence_energy_simulation (int SIMULATION_TYPE, DESIGN *d
   //Define filename of Disstrace file
   char filename[0x100];
 #ifdef WIN32
-  char *pszHomeDIR = getenv ("HOMEPATH") ;   
-  if (!(NULL == pszHomeDIR)) {      
-      snprintf(filename, sizeof(filename), "%s/QCADesignerE_Diss.trace", pszHomeDIR);
+  {
+  // HOMEPATH has no drive letter and may be missing, so use GLib's home directory
+  char *pszTrace = g_build_filename (g_get_home_dir (), "QCADesignerE_Diss.trace", NULL) ;
+
+  g_strlcpy (filename, pszTrace, sizeof (filename)) ;
+  g_free (pszTrace) ;
   }
 #else
     snprintf(filename, sizeof(filename), "QCADesignerE_Diss.trace");
 #endif
 
-  if ((diss_trace_file = fopen (filename, "w+")) == NULL) {
+  if ((diss_trace_file = g_fopen (filename, "w+")) == NULL) {
     printf("QCADesignerE_Diss.trace can't be created!\n");
     command_history_message ("QCADesignerE_Diss.trace can't be created!\n");
     disstrace_open = 0;

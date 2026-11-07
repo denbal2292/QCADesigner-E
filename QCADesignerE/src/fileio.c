@@ -30,6 +30,7 @@
 #endif
 #include <string.h>
 #include <stdio.h>
+#include <glib/gstdio.h>
 #include <stdlib.h>
 
 #include "fileio.h"
@@ -155,7 +156,7 @@ gboolean create_file (gchar *file_name, DESIGN *design)
   char *pszTemp = g_strdup_printf ("%s.saving", file_name) ;
   gboolean bOK = FALSE ;
 
-  if (NULL != (pfile = fopen (pszTemp, "w")))
+  if (NULL != (pfile = g_fopen (pszTemp, "w")))
     {
     create_file_fp (pfile, design) ;
     bOK = !ferror (pfile) ;
@@ -164,12 +165,12 @@ gboolean create_file (gchar *file_name, DESIGN *design)
 #ifdef WIN32
     // rename does not replace an existing file on Windows
     if (bOK)
-      remove (file_name) ;
+      g_remove (file_name) ;
 #endif /* def WIN32 */
-    if (bOK && 0 != rename (pszTemp, file_name))
+    if (bOK && 0 != g_rename (pszTemp, file_name))
       bOK = FALSE ;
     if (!bOK)
-      remove (pszTemp) ;
+      g_remove (pszTemp) ;
     }
 
   g_free (pszTemp) ;
@@ -189,7 +190,7 @@ void export_block (char *pszFName, DESIGN *design)
   {
   FILE *pfile = NULL ;
 
-  if (NULL == (pfile = fopen (pszFName, "w")))
+  if (NULL == (pfile = g_fopen (pszFName, "w")))
     return ;
 
   export_block_fp (pfile, design) ;
@@ -573,7 +574,7 @@ void create_simulation_output_file (char *pszFName, SIMULATION_OUTPUT *sim_outpu
   {
   FILE *fp = NULL ;
 
-  if (NULL == (fp = fopen (pszFName, "w"))) return ;
+  if (NULL == (fp = g_fopen (pszFName, "w"))) return ;
   else create_simulation_output_file_fp (fp, sim_output) ;
   fclose (fp) ;
   }
