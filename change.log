@@ -1,3 +1,8 @@
+UNRELEASED
+- Windows version: portable zip and installer, built with packaging/windows/build-windows.sh
+- fixed lost icons, translations and cell library, and files that could not be opened, when Windows paths contain characters such as č or spaces
+
+
 VERSION: 2.3.2 (06/NOV/2026)
 - fixed crashes and hangs when loading damaged design, simulation results and vector table files
 - a failed save, for example on a full disk, now keeps the old design file instead of leaving a truncated one
