@@ -1,4 +1,4 @@
-name: AppImage
+name: Build
 
 on:
   push:
@@ -46,20 +46,68 @@ jobs:
           path: QCADesignerE-x86_64.AppImage
           if-no-files-found: error
 
+  windows:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      # Keep LF line endings, which the shell scripts and configure need
+      - name: Configure git
+        shell: pwsh
+        run: git config --global core.autocrlf false
+
+      - uses: actions/checkout@v4
+
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          update: true
+          install: >-
+            make git zip
+            mingw-w64-ucrt-x86_64-gcc
+            mingw-w64-ucrt-x86_64-pkgconf
+            mingw-w64-ucrt-x86_64-gtk2
+            mingw-w64-ucrt-x86_64-gettext-runtime
+            mingw-w64-ucrt-x86_64-nsis
+
+      - name: Build
+        run: QCADesignerE/packaging/windows/build-windows.sh
+
+      - name: Check that it starts
+        shell: pwsh
+        run: |
+          Expand-Archive (Get-Item QCADesignerE-*-windows-x86_64.zip) -DestinationPath start-test
+          $exe = Get-ChildItem start-test -Recurse -Filter QCADesignerE.exe | Select-Object -First 1
+          $design = Join-Path $env:GITHUB_WORKSPACE 'circuits\USE_charac_MAJ_classic.qca'
+          $app = Start-Process $exe.FullName -ArgumentList "`"$design`"" -PassThru
+          Start-Sleep -Seconds 15
+          if ($app.HasExited) { throw "QCADesignerE exited early with code $($app.ExitCode)" }
+          Stop-Process -Id $app.Id
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: QCADesignerE-windows-x86_64
+          path: |
+            QCADesignerE-*-windows-x86_64.zip
+            QCADesignerE-*-windows-x86_64-setup.exe
+          if-no-files-found: error
+
   release:
     if: startsWith(github.ref, 'refs/tags/v')
-    needs: build
+    needs: [build, windows]
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: QCADesignerE-x86_64.AppImage
+          merge-multiple: true
 
       - name: Publish the release
         run: |
           gh release create "$GITHUB_REF_NAME" QCADesignerE-x86_64.AppImage \
+            QCADesignerE-*-windows-x86_64.zip QCADesignerE-*-windows-x86_64-setup.exe \
             --repo "$GITHUB_REPOSITORY" --generate-notes
         env:
           GH_TOKEN: ${{ github.token }}
