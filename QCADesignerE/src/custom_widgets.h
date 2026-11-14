@@ -70,6 +70,7 @@ void set_window_icon (GtkWindow *window, char *pszBaseName) ;
 
 #define NUMBER_OF_RULER_SUBDIVISIONS 3
 void set_ruler_scale (GtkRuler *ruler, double dLower, double dUpper) ;
+void fit_ruler_to_font (GtkWidget *ruler) ;
 
 void tree_model_row_changed (GtkTreeModel *model, GtkTreeIter *itr) ;
 void gtk_widget_button_press (GtkWidget *widget, int button, int x, int y, GdkModifierType mask) ;

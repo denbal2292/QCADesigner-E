@@ -405,6 +405,7 @@ static gboolean create_waveform_widgets (GRAPH_DIALOG_DATA *graph_dialog_data, G
   trace_drawing_widget = create_trace_drawing_area ((GRAPH_DATA *)wf, (GDestroyNotify)waveform_data_free, (GCallback)waveform_expose, graph_dialog_data) ;
 
   trace_ruler_widget = gtk_hruler_new () ;
+  fit_ruler_to_font (trace_ruler_widget) ;
 
   g_object_set_data (G_OBJECT (trace_drawing_widget), "ruler", trace_ruler_widget) ;
 
@@ -467,6 +468,7 @@ static gboolean create_bus_widgets (GRAPH_DIALOG_DATA *graph_dialog_data, GtkTre
   trace_drawing_widget = create_trace_drawing_area ((GRAPH_DATA *)hc, (GDestroyNotify)honeycomb_data_free, (GCallback)honeycomb_expose, graph_dialog_data) ;
 
   trace_ruler_widget = gtk_hruler_new () ;
+  fit_ruler_to_font (trace_ruler_widget) ;
 
   g_object_set_data (G_OBJECT (trace_drawing_widget), "ruler", trace_ruler_widget) ;
 

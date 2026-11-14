@@ -505,6 +505,31 @@ void set_ruler_scale (GtkRuler *ruler, double dLower, double dUpper)
   return ;
   }
 
+// Pixels left below a horizontal ruler's digits, and beside a vertical ruler's for its tick marks
+#define HRULER_DIGIT_GAP 2
+#define VRULER_DIGIT_GAP 7
+
+// GTK sizes its rulers for a small font, which clips the digits of a larger one. A horizontal
+// ruler draws its digits as far down as the font places them in a line of text (rcInk.y), so
+// its height has to include that as well as their height.
+// Runs whenever a ruler gets its font, so the ruler always fits it.
+static void ruler_style_set (GtkWidget *ruler, GtkStyle *old_style, gpointer data)
+  {
+  PangoRectangle rcInk ;
+  PangoLayout *layout = gtk_widget_create_pango_layout (ruler, "0123456789") ;
+
+  pango_layout_get_pixel_extents (layout, &rcInk, NULL) ;
+  g_object_unref (layout) ;
+
+  if (GTK_IS_HRULER (ruler))
+    gtk_widget_set_size_request (ruler, -1, rcInk.y + rcInk.height + 2 * ruler->style->ythickness + HRULER_DIGIT_GAP) ;
+  else
+    gtk_widget_set_size_request (ruler, rcInk.width / 10 + 2 * ruler->style->xthickness + VRULER_DIGIT_GAP, -1) ;
+  }
+
+void fit_ruler_to_font (GtkWidget *ruler)
+  {g_signal_connect (G_OBJECT (ruler), "style-set", (GCallback)ruler_style_set, NULL) ;}
+
 
 void set_window_icon (GtkWindow *window, char *pszBaseName)
   {
