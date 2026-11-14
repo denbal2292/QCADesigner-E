@@ -63,6 +63,7 @@ void on_contents_menu_item_activate(GtkMenuItem *menuitem, gpointer user_data);
 void on_about_menu_item_activate(GtkMenuItem *menuitem, gpointer user_data);
 void file_operations (GtkWidget *widget, gpointer user_data);
 #ifdef STDIO_FILEIO
+void main_window_drag_data_received (GtkWidget *widget, GdkDragContext *context, gint x, gint y, GtkSelectionData *data, guint info, guint time, gpointer user_data) ;
 void on_preview_menu_item_activate (GtkMenuItem *menuitem, gpointer user_data);
 void on_load_output_from_file_menu_item_activate (GtkMenuItem *menuitem, gpointer user_data);
 void on_save_output_to_file_menu_item_activate (GtkMenuItem *menuitem, gpointer user_data);

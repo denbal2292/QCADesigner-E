@@ -945,6 +945,12 @@ void create_main_window (main_W *main_window){
   g_signal_connect (G_OBJECT (main_window->bus_layout_menu_item),              "activate", (GCallback)bus_layout_button_clicked,                     NULL);
   g_signal_connect (G_OBJECT (about_menu_item),                                "activate", (GCallback)on_about_menu_item_activate,                   NULL);
   g_signal_connect (G_OBJECT (main_window->main_window),                       "show",     (GCallback)main_window_show,                              NULL);
+#ifdef STDIO_FILEIO
+  // Let files be dragged onto the window to open them
+  gtk_drag_dest_set (main_window->main_window, GTK_DEST_DEFAULT_ALL, NULL, 0, GDK_ACTION_COPY) ;
+  gtk_drag_dest_add_uri_targets (main_window->main_window) ;
+  g_signal_connect (G_OBJECT (main_window->main_window),                       "drag-data-received", (GCallback)main_window_drag_data_received, NULL);
+#endif /* def STDIO_FILEIO */
 
   g_signal_connect (G_OBJECT (clocks_combo),                                   "changed",  (GCallback)on_clocks_combo_changed,    clocks_combo);
   g_signal_connect_swapped (G_OBJECT (quit_menu_item),                         "activate", (GCallback)on_quit_menu_item_activate, main_window->main_window);

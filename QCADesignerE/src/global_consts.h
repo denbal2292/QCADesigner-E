@@ -51,6 +51,7 @@
 #define FILEOP_CMDLINE 9
 #define FILEOP_AUTOSAVE 10
 #define FILEOP_AUTOLOAD 11
+#define FILEOP_DROP 12
 #endif /* def STDIO_FILEIO */
 #define FILEOP_NEW 6
 #define FILEOP_CLOSE 8

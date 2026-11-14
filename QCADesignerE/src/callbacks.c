@@ -749,6 +749,40 @@ void on_clock_increment_menu_item_activate(GtkMenuItem * menuitem, gpointer user
 
 }//on_clock_increment_menu_item_activate
 
+#ifdef STDIO_FILEIO
+// Opens a file dropped onto the main window. Runs from the main loop rather than from the drop
+// itself, so the program the file was dragged from is not kept waiting while a dialog is up.
+static gboolean open_dropped_file (gpointer data)
+  {
+  // A dialog is up, so the design cannot be replaced now
+  if (NULL == gtk_grab_get_current ())
+    file_operations ((GtkWidget *)data, (gpointer)FILEOP_DROP) ;
+
+  g_free (data) ;
+  return FALSE ;
+  }
+
+// Called when something is dropped onto the main window. Opens the first file among the things dropped.
+void main_window_drag_data_received (GtkWidget *widget, GdkDragContext *context, gint x, gint y, GtkSelectionData *data, guint info, guint time, gpointer user_data)
+  {
+  int Nix ;
+  char *pszFName = NULL ;
+  gchar **uris = gtk_selection_data_get_uris (data) ;
+
+  if (NULL != uris)
+    {
+    for (Nix = 0 ; NULL != uris[Nix] && NULL == pszFName ; Nix++)
+      pszFName = g_filename_from_uri (uris[Nix], NULL, NULL) ;
+    g_strfreev (uris) ;
+    }
+
+  gtk_drag_finish (context, NULL != pszFName, FALSE, time) ;
+
+  if (NULL != pszFName)
+    g_idle_add (open_dropped_file, pszFName) ;
+  }
+#endif /* def STDIO_FILEIO */
+
 void file_operations (GtkWidget *widget, gpointer user_data)
   {
   DESIGN *the_new_design = NULL ;
@@ -763,9 +797,10 @@ void file_operations (GtkWidget *widget, gpointer user_data)
     return ;
     }
 
-  if (FILEOP_OPEN == fFileOp || FILEOP_OPEN_RECENT == fFileOp || FILEOP_NEW == fFileOp || FILEOP_CLOSE == fFileOp)
+  if (FILEOP_OPEN == fFileOp || FILEOP_OPEN_RECENT == fFileOp || FILEOP_DROP == fFileOp || FILEOP_NEW == fFileOp || FILEOP_CLOSE == fFileOp)
     if (!(SaveDirtyUI (GTK_WINDOW (main_window.main_window),
       FILEOP_OPEN_RECENT == fFileOp ||
+             FILEOP_DROP == fFileOp ||
              FILEOP_OPEN == fFileOp ? _("You have made changes to your design.  Opening another design will discard those changes. Save first ?") :
               FILEOP_NEW == fFileOp ? _("You have made changes to your design.  Starting a new design will discard those changes.  Save first ?") :
                                       _("You have made changes to your design.  Closing your design will discard those changes.  Save first ?"))))
@@ -790,6 +825,9 @@ void file_operations (GtkWidget *widget, gpointer user_data)
     fill_recent_files_menu (main_window.recent_files_menu, GTK_SIGNAL_FUNC (file_operations), (gpointer)FILEOP_OPEN_RECENT) ;
     pszFName = absolute_path ((char *)widget) ;
     }
+  else
+  if (FILEOP_DROP == fFileOp)
+    pszFName = g_strdup ((char *)widget) ;
   else
   if (FILEOP_AUTOLOAD == fFileOp)
     pszFName = CreateUserFName ("autosave.qca") ;
@@ -842,7 +880,7 @@ void file_operations (GtkWidget *widget, gpointer user_data)
     return ;
     }
 
-  if (FILEOP_OPEN == fFileOp || FILEOP_OPEN_RECENT == fFileOp || FILEOP_CMDLINE == fFileOp || FILEOP_AUTOLOAD == fFileOp)
+  if (FILEOP_OPEN == fFileOp || FILEOP_OPEN_RECENT == fFileOp || FILEOP_CMDLINE == fFileOp || FILEOP_DROP == fFileOp || FILEOP_AUTOLOAD == fFileOp)
     {
     char *pszAutoFName = NULL ;
     gboolean bLoadTheFile = TRUE ;
