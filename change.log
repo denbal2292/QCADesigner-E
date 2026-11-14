@@ -1,3 +1,8 @@
+VERSION: 2.4.1 (14/NOV/2026)
+- a design file dragged onto the main window is opened
+- fixed ruler digits being cut off with larger fonts in the simulation results window
+
+
 VERSION: 2.4 (08/NOV/2026)
 - Windows version: portable zip and installer, built with packaging/windows/build-windows.sh
 - fixed lost icons, translations and cell library, and files that could not be opened, when Windows paths contain characters such as č or spaces
