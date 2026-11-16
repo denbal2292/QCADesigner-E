@@ -1,3 +1,7 @@
+VERSION: 2.4.2 (16/NOV/2026)
+- the main window stays responsive (panning, zooming) while a simulation is running
+
+
 VERSION: 2.4.1 (14/NOV/2026)
 - a design file dragged onto the main window is opened
 - fixed ruler digits being cut off with larger fonts in the simulation results window
