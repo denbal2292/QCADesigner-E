@@ -267,6 +267,7 @@ simulation_data *run_bistable_simulation (int SIMULATION_TYPE, DESIGN *design, b
 #endif
   for (j = 0; j < sim_data_number_samples ; j++)
     {
+    simulation_yield () ;
     if (j % 10 == 0)
       {
       // write the completion percentage to the command history window //

@@ -756,6 +756,23 @@ void set_progress_bar_fraction (double dFraction)
   #endif /* def GTK_GUI */
   }
 
+// Called once per sample from the simulation loops. Lets the main loop run at
+// ~60Hz no matter how long a sample takes, so the UI stays responsive.
+void simulation_yield (void)
+  {
+  #ifdef GTK_GUI
+  static gint64 last = 0 ;
+  gint64 now = g_get_monotonic_time () ;
+
+  if (now - last < 16000) return ;
+
+  // Bound the time spent here so a steady stream of events cannot starve the simulation
+  while (gtk_events_pending () && g_get_monotonic_time () - now < 8000)
+    gtk_main_iteration () ;
+  last = g_get_monotonic_time () ;
+  #endif /* def GTK_GUI */
+  }
+
 void command_history_message (char *pszFmt, ...)
   {
 #ifdef GTK_GUI

@@ -409,6 +409,7 @@ simulation_data *run_coherence_energy_simulation (int SIMULATION_TYPE, DESIGN *d
   // perform the iterations over all samples //
   for (sample = 0; sample < number_samples; sample++)
     {
+    simulation_yield () ;
     if (0 == sample % 10000)
       {
       // Update the progress bar

@@ -323,6 +323,7 @@ simulation_data *run_coherence_simulation (int SIMULATION_TYPE, DESIGN *design, 
   // perform the iterations over all samples //
   for (j = 0; j < number_samples; j++)
     {
+    simulation_yield () ;
     if (0 == j % 10000)
       {
       // Update the progress bar

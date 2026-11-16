@@ -79,6 +79,7 @@ void command_history_message (char *pszFmt, ...) ;
 void set_progress_bar_visible (gboolean bVisible) ;
 void set_progress_bar_label (char *psz) ;
 void set_progress_bar_fraction (double dFraction) ;
+void simulation_yield (void) ;
 GdkColor *clr_idx_to_clr_struct (int clr_idx) ;
 
 #endif /* _CUSTOM_WIDGETS_H_ */
