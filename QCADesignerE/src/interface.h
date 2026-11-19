@@ -38,6 +38,7 @@ typedef struct
   GtkWidget *bus_layout_button;
   GtkWidget *bus_layout_menu_item;
   GtkWidget *clocks_combo_table;
+  GtkWidget *clocks_combo;
   GtkWidget *default_action_button;
   GtkWidget *drawing_area;
   GtkWidget *drawing_area_frame;

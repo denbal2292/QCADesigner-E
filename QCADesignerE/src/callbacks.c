@@ -562,6 +562,10 @@ void layer_properties_button_clicked (GtkWidget *widget, gpointer data)
           // Apply default properties for all object classes in this layer
           if (NULL != layer->default_properties)
             g_hash_table_foreach (layer->default_properties, layer_apply_default_properties, NULL) ;
+          // The clock picked in this dialog becomes the toolbar clock
+          if (LAYER_TYPE_CELLS == layer->type)
+            qcad_clock_combo_set_clock (QCAD_CLOCK_COMBO (main_window.clocks_combo),
+              QCAD_CELL_CLASS (g_type_class_peek (QCAD_TYPE_CELL))->default_cell_options.clock) ;
           }
   }
 
@@ -1490,6 +1494,18 @@ void on_clocks_combo_changed (GtkWidget *widget, gpointer data)
     // Set the default clock in the default_cell_properties of the QCADCellClass, if the current layer is a cell layer
     if (LAYER_TYPE_CELLS == (QCAD_LAYER (project_options.design->lstCurrentLayer->data))->type)
       QCAD_CELL_CLASS (g_type_class_peek (QCAD_TYPE_CELL))->default_cell_options.clock = idxClock ;
+
+    // Store it in every cell layer's default properties too, so that the layer properties dialog
+    // shows it and accepting that dialog does not put the old clock back
+    for (lstItrLayer = project_options.design->lstLayers ; lstItrLayer != NULL ; lstItrLayer = lstItrLayer->next)
+      {
+      QCADLayer *layer = QCAD_LAYER (lstItrLayer->data) ;
+      QCADCellOptions *cell_options = NULL ;
+
+      if (LAYER_TYPE_CELLS == layer->type && NULL != layer->default_properties)
+        if (NULL != (cell_options = g_hash_table_lookup (layer->default_properties, (gpointer)QCAD_TYPE_CELL)))
+          cell_options->clock = idxClock ;
+      }
     }
   }
 
@@ -1517,6 +1533,17 @@ void layer_selected (GtkWidget *widget, gpointer data)
   // Apply default properties for all object classes in this layer
   if (NULL != layer->default_properties)
     g_hash_table_foreach (layer->default_properties, layer_apply_default_properties, NULL) ;
+
+  // The layer's stored defaults carry the clock that was current when the layer was made, so
+  // re-apply the clock shown in the toolbar to keep it across layer switches. The combo reports -1
+  // until a clock has been picked from it, so only a real clock (0-3) is applied.
+  if (LAYER_TYPE_CELLS == layer->type && NULL != main_window.clocks_combo)
+    {
+    int idxClock = qcad_clock_combo_get_clock (QCAD_CLOCK_COMBO (main_window.clocks_combo)) ;
+
+    if (idxClock >= 0 && idxClock <= 3)
+      QCAD_CELL_CLASS (g_type_class_peek (QCAD_TYPE_CELL))->default_cell_options.clock = idxClock ;
+    }
 
   gtk_widget_queue_draw (main_window.toolbar) ;
   }

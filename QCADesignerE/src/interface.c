@@ -185,6 +185,7 @@ void create_main_window (main_W *main_window){
     NULL,
     NULL) ;
 
+  main_window->clocks_combo =
   clocks_combo = qcad_clock_combo_new () ;
   GTK_WIDGET_UNSET_FLAGS (clocks_combo, GTK_CAN_FOCUS | GTK_CAN_DEFAULT) ;
   gtk_widget_show (clocks_combo) ;
