@@ -1,3 +1,9 @@
+VERSION: 2.4.3 (19/NOV/2026)
+- the clock picked in the toolbar is kept when switching layers
+- fixed a layer's Visible box getting stuck greyed out in the layers list
+- fixed setting a hidden layer to Active in its layer properties
+
+
 VERSION: 2.4.2 (16/NOV/2026)
 - the main window stays responsive (panning, zooming) while a simulation is running
 
