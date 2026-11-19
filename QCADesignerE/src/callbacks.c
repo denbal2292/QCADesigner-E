@@ -1598,12 +1598,16 @@ static void layer_status_change (GtkWidget *widget, gpointer data)
       }
     }
 
+  // The "Active" check box is never made insensitive. GTK 2 hands one shared "parent is sensitive"
+  // flag from sibling to sibling while it propagates a state change (such as the combo selecting
+  // this row), so an insensitive "Active" box left the "Visible" box and the icon after it
+  // permanently greyed out. Instead, hiding a layer unticks "Active", and ticking "Active" on a
+  // hidden layer shows it again.
   if (chkVisible == widget)
     {
     if (bActive)
       {
       layer->status = LAYER_STATUS_VISIBLE ;
-      gtk_widget_set_sensitive (chkActivate, TRUE) ;
       gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (chkActivate),
         (gboolean)g_object_get_data (G_OBJECT (widget), "bWasActive")) ;
       }
@@ -1613,14 +1617,21 @@ static void layer_status_change (GtkWidget *widget, gpointer data)
       g_object_set_data (G_OBJECT (widget), "bWasActive",
         (gpointer)gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (chkActivate))) ;
       gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (chkActivate), FALSE) ;
-      gtk_widget_set_sensitive (chkActivate, FALSE) ;
       }
     }
   else
   if (chkActivate == widget)
+    {
+    // An active layer must be visible
+    if (bActive && !gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (chkVisible)))
+      {
+      g_object_set_data (G_OBJECT (chkVisible), "bWasActive", (gpointer)TRUE) ;
+      gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (chkVisible), TRUE) ;
+      }
     layer->status = bActive ? LAYER_STATUS_ACTIVE :
       gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (chkVisible)) ?
       	LAYER_STATUS_VISIBLE : LAYER_STATUS_HIDDEN ;
+    }
 
   gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (main_window.default_action_button), TRUE) ;
 
