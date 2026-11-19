@@ -2094,14 +2094,22 @@ static GtkWidget *layers_combo_add_layer (GtkCombo *combo, GList *layer)
 
 static void layers_combo_item_set_check_buttons (GtkWidget *item, QCADLayer *layer, GtkWidget *chkVisible, GtkWidget *chkActive)
   {
+  LayerStatus status ;
+
   if (NULL == item || NULL == layer || NULL == chkVisible || NULL == chkActive) return ;
 
+  // Toggling the boxes runs layer_status_change, which rewrites layer->status along the way
+  // (showing a layer first makes it merely visible), so remember the status we want and
+  // tell the "Visible" box whether showing the layer should also activate it.
+  status = layer->status ;
+  g_object_set_data (G_OBJECT (chkVisible), "bWasActive", (gpointer)(LAYER_STATUS_ACTIVE == status)) ;
+
   gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (chkVisible),
-    (LAYER_STATUS_ACTIVE  == layer->status || LAYER_STATUS_VISIBLE == layer->status)) ;
+    (LAYER_STATUS_ACTIVE  == status || LAYER_STATUS_VISIBLE == status)) ;
 
-  gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (chkActive), (LAYER_STATUS_ACTIVE == layer->status)) ;
+  gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (chkActive), (LAYER_STATUS_ACTIVE == status)) ;
 
-  g_object_set_data (G_OBJECT (chkVisible), "bWasActive", (gpointer)(LAYER_STATUS_ACTIVE == layer->status)) ;
+  g_object_set_data (G_OBJECT (chkVisible), "bWasActive", (gpointer)(LAYER_STATUS_ACTIVE == status)) ;
   }
 
 static void layers_combo_refresh_item (GtkWidget *item)
